@@ -1,0 +1,343 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{6758BE8E-42B4-4BA6-BC85-6073EFE7FC2C}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <RootNamespace>PagosIntermex</RootNamespace>
+    <AssemblyName>PagosIntermex</AssemblyName>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <Deterministic>true</Deterministic>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>
+    </ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="FirebirdSql.Data.FirebirdClient, Version=7.5.0.0, Culture=neutral, PublicKeyToken=3750abcc3150b00c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>bin\Debug\FirebirdSql.Data.FirebirdClient.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.WindowsAPICodePack-Core.1.1.0.2\lib\Microsoft.WindowsAPICodePack.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack.Shell, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.WindowsAPICodePack-Shell.1.1.0.0\lib\Microsoft.WindowsAPICodePack.Shell.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.WindowsAPICodePack.ShellExtensions, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.WindowsAPICodePack-Shell.1.1.0.0\lib\Microsoft.WindowsAPICodePack.ShellExtensions.dll</HintPath>
+    </Reference>
+    <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.12.0.2\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.EnterpriseServices" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="CLASES\C_AGREGACREDITO.cs" />
+    <Compile Include="CLASES\C_ANTICIPOS.cs" />
+    <Compile Include="CLASES\C_AUT_PAGOS.cs" />
+    <Compile Include="CLASES\C_BANCOS.cs" />
+    <Compile Include="CLASES\C_CONEXIONFIREBIRD.cs" />
+    <Compile Include="CLASES\C_ConexionSQL.cs" />
+    <Compile Include="CLASES\C_CONEXIONWEBSVC.cs" />
+    <Compile Include="CLASES\C_CREAR_TXT.cs" />
+    <Compile Include="CLASES\C_CUENTAS_BAN.cs" />
+    <Compile Include="CLASES\C_EMPRESAS.cs" />
+    <Compile Include="CLASES\C_EMPRESAS_DATOS_PARTICULARES.cs" />
+    <Compile Include="CLASES\C_FUNCIONES.cs" />
+    <Compile Include="CLASES\C_LIBERARCREDITO.cs" />
+    <Compile Include="CLASES\C_PAGOS.cs" />
+    <Compile Include="CLASES\C_USUARIOS.cs" />
+    <Compile Include="FORMS\ANTICIPOS\F_ANTICIPOS.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FORMS\ANTICIPOS\F_ANTICIPOS.Designer.cs">
+      <DependentUpon>F_ANTICIPOS.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FORMS\CONFIGURACION\F_CONTROLUSUARIOS.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FORMS\CONFIGURACION\F_CONTROLUSUARIOS.Designer.cs">
+      <DependentUpon>F_CONTROLUSUARIOS.cs</DependentUpon>
+    </Compile>
+    <Compile Include="CLASES\C_REGISTROSWINDOWS.cs" />
+    <Compile Include="FORMS\CONFIGURACION\F_DATOS_PARTICULARES.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FORMS\CONFIGURACION\F_DATOS_PARTICULARES.Designer.cs">
+      <DependentUpon>F_DATOS_PARTICULARES.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FORMS\CONFIGURACION\F_NIVELES.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FORMS\CONFIGURACION\F_NIVELES.Designer.cs">
+      <DependentUpon>F_NIVELES.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FORMS\F_CUENTASBANCARIAS.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FORMS\F_CUENTASBANCARIAS.Designer.cs">
+      <DependentUpon>F_CUENTASBANCARIAS.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FORMS\F_FECHA_PAGO.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FORMS\F_FECHA_PAGO.Designer.cs">
+      <DependentUpon>F_FECHA_PAGO.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FORMS\F_LIBERARPAGOS.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FORMS\F_LIBERARPAGOS.Designer.cs">
+      <DependentUpon>F_LIBERARPAGOS.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FORMS\F_LOGIN.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FORMS\F_LOGIN.Designer.cs">
+      <DependentUpon>F_LOGIN.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FORMS\PETICIONES_PAGOS\F_CANCELACION.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FORMS\PETICIONES_PAGOS\F_CANCELACION.Designer.cs">
+      <DependentUpon>F_CANCELACION.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FORMS\PETICIONES_PAGOS\F_DETALLE_PETICIONES.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FORMS\PETICIONES_PAGOS\F_DETALLE_PETICIONES.Designer.cs">
+      <DependentUpon>F_DETALLE_PETICIONES.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FORMS\PETICIONES_PAGOS\F_PETICIONESPAGOS.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FORMS\PETICIONES_PAGOS\F_PETICIONESPAGOS.Designer.cs">
+      <DependentUpon>F_PETICIONESPAGOS.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FORMS\PETICIONES_PAGOS\F_VER_DETALLE_PETICION.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FORMS\PETICIONES_PAGOS\F_VER_DETALLE_PETICION.Designer.cs">
+      <DependentUpon>F_VER_DETALLE_PETICION.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FORMS\PROGRAMACION_PAGOS\F_PROGRAMAS.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FORMS\PROGRAMACION_PAGOS\F_PROGRAMAS.Designer.cs">
+      <DependentUpon>F_PROGRAMAS.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FORMS\CONFIGURACION\F_FRECUENCIAPROGRAMA.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FORMS\CONFIGURACION\F_FRECUENCIAPROGRAMA.Designer.cs">
+      <DependentUpon>F_FRECUENCIAPROGRAMA.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FORMS\PROGRAMACION_PAGOS\F_PROGRAMACIONPAGOS.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FORMS\PROGRAMACION_PAGOS\F_PROGRAMACIONPAGOS.Designer.cs">
+      <DependentUpon>F_PROGRAMACIONPAGOS.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FORMS\ANTICIPOS\F_ANTICIPOPAGOS.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FORMS\ANTICIPOS\F_ANTICIPOPAGOS.Designer.cs">
+      <DependentUpon>F_ANTICIPOPAGOS.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FORMS\PROGRAMACION_PAGOS\F_DETALLEPROGRAMACIONPAGOS.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FORMS\PROGRAMACION_PAGOS\F_DETALLEPROGRAMACIONPAGOS.Designer.cs">
+      <DependentUpon>F_DETALLEPROGRAMACIONPAGOS.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FORMS\CONFIGURACION\F_CONFIGCONEXIONES.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FORMS\CONFIGURACION\F_CONFIGCONEXIONES.Designer.cs">
+      <DependentUpon>F_CONFIGCONEXIONES.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FORMS\F_SERIES.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FORMS\F_SERIES.designer.cs">
+      <DependentUpon>F_SERIES.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FORMS\PROGRAMACION_PAGOS\F_USUARIOS_AUTORIZADORES.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FORMS\PROGRAMACION_PAGOS\F_USUARIOS_AUTORIZADORES.Designer.cs">
+      <DependentUpon>F_USUARIOS_AUTORIZADORES.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="ProgramacionPagos.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UtileriasC.cs" />
+    <EmbeddedResource Include="FORMS\ANTICIPOS\F_ANTICIPOS.resx">
+      <DependentUpon>F_ANTICIPOS.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FORMS\CONFIGURACION\F_CONTROLUSUARIOS.resx">
+      <DependentUpon>F_CONTROLUSUARIOS.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FORMS\CONFIGURACION\F_DATOS_PARTICULARES.resx">
+      <DependentUpon>F_DATOS_PARTICULARES.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FORMS\CONFIGURACION\F_NIVELES.resx">
+      <DependentUpon>F_NIVELES.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FORMS\F_CUENTASBANCARIAS.resx">
+      <DependentUpon>F_CUENTASBANCARIAS.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FORMS\F_FECHA_PAGO.resx">
+      <DependentUpon>F_FECHA_PAGO.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FORMS\F_LIBERARPAGOS.resx">
+      <DependentUpon>F_LIBERARPAGOS.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FORMS\F_LOGIN.resx">
+      <DependentUpon>F_LOGIN.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FORMS\PETICIONES_PAGOS\F_CANCELACION.resx">
+      <DependentUpon>F_CANCELACION.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FORMS\PETICIONES_PAGOS\F_DETALLE_PETICIONES.resx">
+      <DependentUpon>F_DETALLE_PETICIONES.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FORMS\PETICIONES_PAGOS\F_PETICIONESPAGOS.resx">
+      <DependentUpon>F_PETICIONESPAGOS.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FORMS\PETICIONES_PAGOS\F_VER_DETALLE_PETICION.resx">
+      <DependentUpon>F_VER_DETALLE_PETICION.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FORMS\PROGRAMACION_PAGOS\F_PROGRAMAS.resx">
+      <DependentUpon>F_PROGRAMAS.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FORMS\CONFIGURACION\F_FRECUENCIAPROGRAMA.resx">
+      <DependentUpon>F_FRECUENCIAPROGRAMA.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FORMS\PROGRAMACION_PAGOS\F_PROGRAMACIONPAGOS.resx">
+      <DependentUpon>F_PROGRAMACIONPAGOS.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FORMS\ANTICIPOS\F_ANTICIPOPAGOS.resx">
+      <DependentUpon>F_ANTICIPOPAGOS.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FORMS\PROGRAMACION_PAGOS\F_DETALLEPROGRAMACIONPAGOS.resx">
+      <DependentUpon>F_DETALLEPROGRAMACIONPAGOS.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FORMS\CONFIGURACION\F_CONFIGCONEXIONES.resx">
+      <DependentUpon>F_CONFIGCONEXIONES.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FORMS\F_SERIES.resx">
+      <DependentUpon>F_SERIES.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FORMS\PROGRAMACION_PAGOS\F_USUARIOS_AUTORIZADORES.resx">
+      <DependentUpon>F_USUARIOS_AUTORIZADORES.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <None Include="packages.config" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <WCFMetadata Include="Service References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <WebReferences Include="Web References\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\wave2.jpg" />
+    <None Include="Resources\wave %283%29.jpg" />
+    <None Include="Resources\borde boton.png" />
+    <None Include="Resources\dasd.jpg" />
+    <None Include="Resources\Financial advisor logo.Right and left Arrow Logo.png" />
+    <None Include="bin\Debug\Imágenes\icon.png" />
+    <Content Include="bin\Debug\Icon.ico" />
+    <Content Include="bin\Debug\Imágenes\ok.png" />
+    <Content Include="bin\Debug\Imágenes\parar.png" />
+    <Content Include="bin\Debug\Imágenes\wait.png" />
+    <Content Include="icon_navbar.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.6">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4.6 %28x86 y x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
