@@ -57,7 +57,7 @@ namespace PagosIntermex
                 splitContainer1.Panel2.Hide();
             }
 
-            if (usuarioLogueado.Tesoreria.ToUpper() == "FALSE")
+            if (usuarioLogueado.Tesoreria == "N")
             {
                 button3.Text = "Crear Petición";
                 btnSearchInMSP.Text = "Buscar Microsip";
@@ -375,7 +375,7 @@ namespace PagosIntermex
                     if (Convert.ToBoolean(dgvProgramas["dgvp_check", i].Value))
                     {
                         //checamos si es programacion o peticion
-                        if (usuarioLogueado.Tesoreria.ToUpper() == "TRUE")
+                        if (usuarioLogueado.Tesoreria == "S")
                         {
                             if (!string.IsNullOrEmpty(Convert.ToString(dgvProgramas["DOCTO_PP_ID_2", i].Value)))
                             {

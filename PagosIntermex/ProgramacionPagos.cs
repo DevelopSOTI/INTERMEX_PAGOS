@@ -262,7 +262,7 @@ namespace PagosIntermex
                 {
                     if (conn.ConectarSQL())
                     {
-                        if (usuario.Requisitante == "N" || usuario.Tesoreria.ToUpper() == "TRUE" || usuario.U_ROL == "A")
+                        if (usuario.Requisitante == "N" || usuario.Tesoreria == "S" || usuario.U_ROL == "A")
                         {
                             string _nivel = "";
                             if (Ver != "S")
@@ -404,7 +404,7 @@ namespace PagosIntermex
                     {
                         string consulta = "";
                         SqlCommand sc = new SqlCommand();
-                        if (usuario.Requisitante == "S" && usuario.Tesoreria.ToUpper() == "FALSE")
+                        if (usuario.Requisitante == "S" && usuario.Tesoreria == "N")
                         {
                             if (usuario.U_ROL == "C")
                             {
@@ -521,7 +521,7 @@ namespace PagosIntermex
                         }
                         else
                         {
-                            if(usuario.Tesoreria.ToUpper() == "TRUE" || usuario.U_ROL == "A")
+                            if(usuario.Tesoreria == "S" || usuario.U_ROL == "A")
                             {
                                 consulta = "SELECT ";
                                 consulta += "      dpr.DOCTO_PR_ID DOCTO_PP_ID, ";
@@ -643,7 +643,7 @@ namespace PagosIntermex
                         SqlDataReader sdr;
 
                         //cheamos si es de tesoreria
-                        if (usuario.Tesoreria.ToUpper() == "TRUE" || usuario.U_ROL == "A")
+                        if (usuario.Tesoreria == "S" || usuario.U_ROL == "A")
                         {
                             #region codigo es tesoreria
                             consulta = "SELECT ";
