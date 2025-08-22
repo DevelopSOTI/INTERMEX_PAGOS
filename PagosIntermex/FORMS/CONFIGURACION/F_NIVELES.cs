@@ -189,7 +189,7 @@ namespace PagosIntermex
                         #region Checar si existe
                         string query = " SELECT * FROM NIVELES ";
                         query += " WHERE NIVEL = " + cbNivel.Text;
-                        if (cbUsuarios.SelectedIndex > 0)
+                        if (cbUsuarios.SelectedIndex >= 0)
                         {
                             C_USUARIOS user = cbUsuarios.SelectedItem as C_USUARIOS;
                             query += " AND USUARIO_ID = " + user.Usuario_id;
@@ -222,13 +222,13 @@ namespace PagosIntermex
                         }
                         else {
                             string insert = "INSERT INTO NIVELES(NIVEL";
-                            insert += cbUsuarios.SelectedIndex > 0 ? " ,USUARIO_ID) " : " ,DEPTO) ";
+                            insert += cbUsuarios.SelectedIndex >= 0 ? " ,USUARIO_ID) " : " ,DEPTO) ";
                             insert += " VALUES (@NIVEL";
-                            insert += cbUsuarios.SelectedIndex > 0 ? " ,@USUARIO_ID) " : " ,@DEPTO) ";
+                            insert += cbUsuarios.SelectedIndex >= 0 ? " ,@USUARIO_ID) " : " ,@DEPTO) ";
 
                             sc = new SqlCommand(insert, con.SC, tran);
                             sc.Parameters.Add("@NIVEL", SqlDbType.Int).Value = cbNivel.Text;
-                            if (cbUsuarios.SelectedIndex > 0)
+                            if (cbUsuarios.SelectedIndex >= 0)
                             {
                                 C_USUARIOS user = cbUsuarios.SelectedItem as C_USUARIOS;
                                 sc.Parameters.Add("@USUARIO_ID", SqlDbType.Int).Value = user.Usuario_id;
