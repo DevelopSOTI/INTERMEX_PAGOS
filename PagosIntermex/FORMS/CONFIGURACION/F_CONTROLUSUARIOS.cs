@@ -68,7 +68,7 @@ namespace PagosIntermex
                                 dgvUserData["Pass", dgvUserData.RowCount - 1].Value = reader["Contraseña"].ToString();
                                 dgvUserData["Estatus", dgvUserData.RowCount - 1].Value = reader["Estatus"].ToString() == "A" ? "Activo" : "Baja";
                                 dgvUserData["REQUI", dgvUserData.RowCount - 1].Value = reader["Requisitante"].ToString() == "S" ? "Si" : "No";
-                                dgvUserData["TESORERIA", dgvUserData.RowCount - 1].Value = Convert.ToBoolean(reader["Tesoreria"].ToString()) == true ? "Si" : "No";
+                                dgvUserData["TESORERIA", dgvUserData.RowCount - 1].Value = reader["Tesoreria"].ToString() == "S" ? "Si" : "No";
                                 switch (Convert.ToString(reader["U_ROL"]))
                                 {
                                     case "A":
@@ -175,7 +175,7 @@ namespace PagosIntermex
                                            U_PASSWORD = tbPassword.Text,
                                            U_EMAIL = tbCorreoElectronico.Text,
                                            Requi = cbRequi.Text == "Si" ? "S" :"N",
-                                           Teso = cbTeso.Text == "Si" ? "1" : "0",
+                                           Teso = cbTeso.Text == "Si" ? "S" : "N",
                                            U_ID = "";
                                     string U_ROL = "";
                                     DEPTOS depto = cbDptos.SelectedItem as DEPTOS;
@@ -249,7 +249,7 @@ namespace PagosIntermex
                                            U_PASSWORD = tbPassword.Text,
                                            U_EMAIL = tbCorreoElectronico.Text,
                                            Requi = cbRequi.Text == "Si" ? "S" : "N",
-                                           Teso = cbTeso.Text == "Si" ? "1" : "0",
+                                           Teso = cbTeso.Text == "Si" ? "S" : "N",
                                            U_ID = SELECTED_ID.ToString(),
                                            U_ESTATUS = cbEstatus.SelectedItem.ToString() == "Activo" ? "A" : "B";
                                            string U_ROL = "";
