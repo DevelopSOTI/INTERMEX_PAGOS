@@ -60,7 +60,7 @@ namespace PagosIntermex
             pp.EncabezadoPagosPeticiones(dataGridView1, dgvPeticiones,usuarioLogueado, estatus, fechas, cBEstatus.Text, dTPInicio.Value.ToString(), dTPFin.Value.ToString());
 
             //en caso de que el usuario sea programador de pagos
-            if (usuarioLogueado.Tesoreria == "S" || usuarioLogueado.U_ROL == "A")
+            if (usuarioLogueado.Tesoreria.ToUpper() == "TRUE" || usuarioLogueado.U_ROL == "A")
             {
                 button1.Text = "Programar Pagos";
                 btnProgramacion.PerformClick();
@@ -105,7 +105,7 @@ namespace PagosIntermex
             tipoUsuario.Text = usuarioLogueado.TIPO_USUARIO();
             txtNivel.Text = usuarioLogueado.NIVEL.ToString() == "0"?"5": usuarioLogueado.NIVEL.ToString();
             txtRequi.Text = usuarioLogueado.Requisitante == "S" ? "Si" : "No";
-            txtTesoreria.Text = usuarioLogueado.Tesoreria == "S" ? "Si" : "No";
+            txtTesoreria.Text = usuarioLogueado.Tesoreria == "True" ? "Si" : "No";
 
             notifyIcon1.Icon =
    new System.Drawing.Icon(AppDomain.CurrentDomain.BaseDirectory + @"\Icon.ico");
