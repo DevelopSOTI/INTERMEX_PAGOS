@@ -663,8 +663,9 @@ namespace PagosIntermex
                             consulta += " INNER JOIN P_DOCTOS_PR_DET AS DPRD ON(DPR.DOCTO_PR_ID = DPRD.DOCTO_PR_ID) ";
                             consulta += " join P_AUT_DOCTOS_PR pad on pad.DOCTO_PR_DET_ID = DPRD.DOCTO_PR_DET_ID ";
                             consulta += " join USUARIOS u on u.Usuario_id = pad.USUARIO_ID  ";
-                            consulta += " where (u.Usuario = '" + usuario.Usuario + "' or DPR.USUARIO_CREADOR = '" + usuario.Usuario + "')";
-                            consulta += " and  pad.ESTATUS != 'P' ";
+                            consulta += " where ";
+                           consulta += "(u.Usuario = '" + usuario.Usuario + "' or DPR.USUARIO_CREADOR = '" + usuario.Usuario + "')  and ";
+                            consulta += " pad.ESTATUS != 'P' ";
 
                             //EN caso de que el usuario este filtrando por fechas
                             if (fechas)

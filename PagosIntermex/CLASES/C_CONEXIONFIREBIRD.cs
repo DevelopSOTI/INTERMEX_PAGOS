@@ -5,6 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 
 namespace PagosIntermex
 {
@@ -20,6 +21,7 @@ namespace PagosIntermex
         {
             user = password = database = root = server = "";
         }
+        private string caption = "Mensaje de la aplicación";
 
         public string USER
         {
@@ -199,6 +201,66 @@ namespace PagosIntermex
         public void Desconectar()
         {
             fbc.Close();
+        }
+
+
+        public int VersionActualMsp(C_CONEXIONFIREBIRD con)
+        {
+            int versionActualMsp = 0;
+            try
+            {
+                string query = "SELECT FIRST 1 VERSION_DB ";
+                query += "FROM CONVER_BASE_DATOS ";
+                query += "ORDER BY VERSION_DB DESC";
+
+                FbCommand fb = new FbCommand(query, con.FBC);
+                FbDataReader fdr = fb.ExecuteReader();
+
+                while (fdr.Read())
+                    versionActualMsp = Convert.ToInt32(Convert.ToString(fdr["VERSION_DB"]));
+                fdr.Close();
+                fb.Dispose();
+            }
+            catch (Exception ex)
+            {
+
+                MessageBox.Show(ex.Message);
+            }
+
+            return versionActualMsp;
+        }
+
+        public bool ConectarFB_Metadatos()
+        {
+            try
+            {
+                C_REGISTROSWINDOWS reg = new C_REGISTROSWINDOWS();
+
+                if (reg.LeerRegistros(false))
+                {
+                    conectionString = @"User=SYSDBA;";
+                    conectionString += "Password=" + reg.FB_PASSWORD + ";";
+                    conectionString += "Database=" + reg.FB_ROOT + "\\System\\Metadatos.FDB" + ";";
+                    conectionString += "Datasource=" + reg.FB_SERVIDOR + ";";
+                    conectionString += "Dialect=3;";
+                    conectionString += "Charset=ISO8859_1;";
+
+                    fbc = new FbConnection(conectionString);
+                    fbc.Open();
+
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("No fue posible establecer conexión con Microsip.\n\n" + ex.Message, caption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                return false;
+            }
         }
 
     }

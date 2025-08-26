@@ -36,6 +36,13 @@ namespace PagosIntermex
             fb_servidor = fb_pass = fb_ruta = websvc_dom = websvc_host = websvc_pass = websvc_user = fb_bd = "";
         }
 
+
+        public string LICENCIA_VERIFICADA { get; set; }
+        public string VERSION_VERIFICADA { get; set; }
+
+        public string MENSAJE_LICENCIA { get; set; }
+
+
         // Propiedades FBServer
         public string FB_PASSWORD
         {
@@ -168,7 +175,11 @@ namespace PagosIntermex
                 SQL_USER = (string)rk2.GetValue("SQL_USER");
                 SQL_PASS = (string)rk2.GetValue("SQL_PASS");
 
-                return true;
+                    VERSION_VERIFICADA = (string)rk2.GetValue("VERSION_VERIFICADA");
+                    LICENCIA_VERIFICADA = (string)rk2.GetValue("LICENCIA_VERIFICADA");
+                    MENSAJE_LICENCIA = (string)rk2.GetValue("MENSAJE_LICENCIA");
+
+                    return true;
                 }
                 else
                 {

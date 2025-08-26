@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 
 using FirebirdSql.Data.FirebirdClient;
+using Newtonsoft.Json;
 
 namespace PagosIntermex
 {
@@ -67,6 +68,34 @@ namespace PagosIntermex
    new System.Drawing.Icon(AppDomain.CurrentDomain.BaseDirectory + @"\Icon.ico");
             notifyIcon1.Visible = true;
             notifyIcon1.Text = "Sistema de Pagos";
+
+
+
+            #region VERIFICAR SOFTWARE
+            ApiLic api = new ApiLic();
+
+            ApiLic.Licencia[] licencias = new ApiLic.Licencia[1];
+            licencias[0] = new ApiLic.Licencia();
+            licencias[0].NOMBRE_LICENCIA = "INTERMEX_PAGOS";
+            string json = JsonConvert.SerializeObject(licencias);
+            //lbLic.Text = "Verificando Licencia, espere un momento";
+            Refresh();
+            if (!api.VerificarProducto(json))
+            {
+                C_REGISTROSWINDOWS c = new C_REGISTROSWINDOWS();
+                c.LeerRegistros(false);
+                MessageBox.Show($"Hubo un problema con la licencia de este producto:\n{c.MENSAJE_LICENCIA.ToString()}\n\nFavor de contactar con SOTI para la nueva versión del Software", "Administrador de Licencias", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+                //DESHABILITAR CONTROLES
+                button1.Enabled = false;
+                linkLabel1.Enabled = false;
+                linkLabel2.Enabled = false;
+            }
+            // lbLic.ResetText();
+            Refresh();
+            #endregion
+
+
         }
 
 
