@@ -652,10 +652,12 @@ namespace PagosIntermex
                                                     consulta += "       ESTATUS_PROC = 'P', ";
                                                 }
                                                 consulta += "       USUARIO_AUTORIZO = '" + usuarioLogueado.Usuario + "', " +
-                                                         "       FECHA_HORA_AUTORIZO = '" + DateTime.Now.ToString("dd.MM.yyy HH:mm:ss") + "' " +
+                                                         // "       FECHA_HORA_AUTORIZO = '" + DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss") + "' " +
+                                                         "       FECHA_HORA_AUTORIZO = @FechaAutorizo " +
                                                          " WHERE FOLIO = '" + FOLIO + "' ";
                                                 //    "   AND EMPRESA = '" + EMPRESA + "'";
                                                 cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                cmd.Parameters.Add("@FechaAutorizo", SqlDbType.DateTime).Value = DateTime.Now;
                                                 cmd.ExecuteNonQuery();
                                                 cmd.Dispose();
 

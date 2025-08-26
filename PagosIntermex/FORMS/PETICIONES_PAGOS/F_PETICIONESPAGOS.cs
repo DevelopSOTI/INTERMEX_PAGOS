@@ -220,7 +220,7 @@ namespace PagosIntermex
                                     //buscamos en el arreglo por si existe
                                     int index = lista.FindIndex(x => x.MSP_FOLIO == orden_compra);
 
-                                    if (index > 0)
+                                    if (index >= 0)
                                     {
 
                                         string folio_cargo = Convert.ToString(reader["FOLIO_CARGO"]);
