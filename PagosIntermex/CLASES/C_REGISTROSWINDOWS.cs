@@ -405,5 +405,37 @@ namespace PagosIntermex
             }
         }
 
+
+        public void checarRegistrosLicencias()
+        {
+            try
+            {
+                var view = Environment.Is64BitOperatingSystem ? RegistryView.Registry64 : RegistryView.Registry32;
+                using (var baseKey = RegistryKey.OpenBaseKey(RegistryHive.CurrentUser, view))
+                {
+                    using (var key = baseKey.OpenSubKey(ruta_registros, true) ?? baseKey.CreateSubKey(ruta_registros, true))
+                    {
+                        if (key == null) return;
+
+                        // Si no existe, crea en blanco
+                        if (key.GetValue("VERSION_VERIFICADA") == null)
+                            key.SetValue("VERSION_VERIFICADA", "", RegistryValueKind.String);
+
+                        if (key.GetValue("LICENCIA_VERIFICADA") == null)
+                            key.SetValue("LICENCIA_VERIFICADA", "", RegistryValueKind.String);
+
+                        if (key.GetValue("MENSAJE_LICENCIA") == null)
+                            key.SetValue("MENSAJE_LICENCIA", "", RegistryValueKind.String);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("No fue posible verificar/crear los registros de licencia.\n\n" + ex.Message,
+                                caption, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+
     }
 }
