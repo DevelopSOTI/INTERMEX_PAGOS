@@ -129,6 +129,7 @@ namespace PagosIntermex
 
             if (MessageBox.Show("¿Desea guardar la configuración actual?", "Mensaje de pagos", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
+                registros.checarRegistrosLicencias();
                 registros.EscribirRegistros("FB_PASSWORD", tbPassword.Text,false);
                 registros.EscribirRegistros("FB_ROOT", tbRoot.Text,false);
                 registros.EscribirRegistros("FB_SERVIDOR", tbServer.Text,false);
