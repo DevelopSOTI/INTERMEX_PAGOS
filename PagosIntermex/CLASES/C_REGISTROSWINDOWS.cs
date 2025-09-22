@@ -334,7 +334,7 @@ namespace PagosIntermex
 
             foreach (System.Reflection.PropertyInfo propiedad in listaPropiedades)
             {
-                EscribirRegistros(propiedad.Name, " ", false);
+                EscribirRegistros(propiedad.Name, "", false);
             }
         }
 

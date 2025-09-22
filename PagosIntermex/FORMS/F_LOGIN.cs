@@ -83,16 +83,17 @@ namespace PagosIntermex
             c.LeerRegistros(false);
             //lbLic.Text = "Verificando Licencia, espere un momento";
             Refresh();
-            if (!api.VerificarProducto(json))
-            {
-                
-                MessageBox.Show($"Hubo un problema con la licencia de este producto:\n{c.MENSAJE_LICENCIA.ToString()}\n\nFavor de contactar con SOTI para la nueva versión del Software", "Administrador de Licencias", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            if (c.FB_SERVIDOR != "")
+                if (!api.VerificarProducto(json))
+                {
 
-                //DESHABILITAR CONTROLES
-                button1.Enabled = false;
-                linkLabel1.Enabled = false;
-                linkLabel2.Enabled = false;
-            }
+                    MessageBox.Show($"Hubo un problema con la licencia de este producto:\n{c.MENSAJE_LICENCIA.ToString()}\n\nFavor de contactar con SOTI para la nueva versión del Software", "Administrador de Licencias", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+
+                    //DESHABILITAR CONTROLES
+                    button1.Enabled = false;
+                    // linkLabel1.Enabled = false;
+                    linkLabel2.Enabled = false;
+                }
             // lbLic.ResetText();
             Refresh();
             #endregion
