@@ -11,6 +11,7 @@ using System.IO;
 
 using FirebirdSql.Data.FirebirdClient;
 using System.Data.SqlClient;
+using PagosIntermex.FORMS.REPORTES;
 
 namespace PagosIntermex
 {
@@ -1889,6 +1890,19 @@ namespace PagosIntermex
             ver.DOCTO_PP_DET_ID = docto_pr_id;
             ver.usuario = usuarioLogueado;
             ver.ShowDialog();
+        }
+
+        private void detalleDeProgramaciónDePagosToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            F_REP_PROGRAMACION repo = new F_REP_PROGRAMACION();
+            repo.ShowDialog();
+        }
+
+        private void repPago1_Click(object sender, EventArgs e)
+        {
+            int docto_pr_id = Convert.ToInt32(Convert.ToString(dgvPeticiones["DOCTO_PR_ID_2", dgvPeticiones.CurrentRow.Index].Value));
+            F_REP_PROGRAMACION repo = new F_REP_PROGRAMACION(docto_pr_id);
+            repo.ShowDialog();
         }
     }
 }

@@ -56,6 +56,11 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>..\..\..\..\Documents\youtube\C#\Curso1\FirebirdSql.Data.FirebirdClient.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <HintPath>..\..\Fraccionamientos\Fraccionamientos\bin\Debug\Microsoft.Office.Interop.Excel.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.WindowsAPICodePack, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.WindowsAPICodePack-Core.1.1.0.2\lib\Microsoft.WindowsAPICodePack.dll</HintPath>
     </Reference>
@@ -226,6 +231,12 @@
     <Compile Include="FORMS\PROGRAMACION_PAGOS\F_USUARIOS_AUTORIZADORES.Designer.cs">
       <DependentUpon>F_USUARIOS_AUTORIZADORES.cs</DependentUpon>
     </Compile>
+    <Compile Include="FORMS\REPORTES\F_REP_PROGRAMACION.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FORMS\REPORTES\F_REP_PROGRAMACION.Designer.cs">
+      <DependentUpon>F_REP_PROGRAMACION.cs</DependentUpon>
+    </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="ProgramacionPagos.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -289,6 +300,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="FORMS\PROGRAMACION_PAGOS\F_USUARIOS_AUTORIZADORES.resx">
       <DependentUpon>F_USUARIOS_AUTORIZADORES.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FORMS\REPORTES\F_REP_PROGRAMACION.resx">
+      <DependentUpon>F_REP_PROGRAMACION.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>

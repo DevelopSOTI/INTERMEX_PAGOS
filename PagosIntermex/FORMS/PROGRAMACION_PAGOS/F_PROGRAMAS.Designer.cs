@@ -139,6 +139,9 @@
             this.generarPagosToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator9 = new System.Windows.Forms.ToolStripSeparator();
             this.eliminarProgramaciónDePagoToolStripMenuItem2 = new System.Windows.Forms.ToolStripMenuItem();
+            this.detalleDeProgramaciónDePagosToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator10 = new System.Windows.Forms.ToolStripSeparator();
+            this.repPago1 = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.contextMenuStrip1.SuspendLayout();
@@ -216,7 +219,7 @@
             // configuraciónToolStripMenuItem
             // 
             this.configuraciónToolStripMenuItem.Name = "configuraciónToolStripMenuItem";
-            this.configuraciónToolStripMenuItem.Size = new System.Drawing.Size(266, 22);
+            this.configuraciónToolStripMenuItem.Size = new System.Drawing.Size(265, 22);
             this.configuraciónToolStripMenuItem.Text = "Frecuencias de pago";
             this.configuraciónToolStripMenuItem.Visible = false;
             this.configuraciónToolStripMenuItem.Click += new System.EventHandler(this.configuraciónToolStripMenuItem_Click);
@@ -224,21 +227,21 @@
             // conexionesToolStripMenuItem
             // 
             this.conexionesToolStripMenuItem.Name = "conexionesToolStripMenuItem";
-            this.conexionesToolStripMenuItem.Size = new System.Drawing.Size(266, 22);
+            this.conexionesToolStripMenuItem.Size = new System.Drawing.Size(265, 22);
             this.conexionesToolStripMenuItem.Text = "Configurar conexiones y parametros";
             this.conexionesToolStripMenuItem.Click += new System.EventHandler(this.conexionesToolStripMenuItem_Click);
             // 
             // controlDeUsuariosToolStripMenuItem
             // 
             this.controlDeUsuariosToolStripMenuItem.Name = "controlDeUsuariosToolStripMenuItem";
-            this.controlDeUsuariosToolStripMenuItem.Size = new System.Drawing.Size(266, 22);
+            this.controlDeUsuariosToolStripMenuItem.Size = new System.Drawing.Size(265, 22);
             this.controlDeUsuariosToolStripMenuItem.Text = "Control de usuarios";
             this.controlDeUsuariosToolStripMenuItem.Click += new System.EventHandler(this.controlDeUsuariosToolStripMenuItem_Click);
             // 
             // configurarSeriesToolStripMenuItem
             // 
             this.configurarSeriesToolStripMenuItem.Name = "configurarSeriesToolStripMenuItem";
-            this.configurarSeriesToolStripMenuItem.Size = new System.Drawing.Size(266, 22);
+            this.configurarSeriesToolStripMenuItem.Size = new System.Drawing.Size(265, 22);
             this.configurarSeriesToolStripMenuItem.Text = "Configurar series del sistema";
             this.configurarSeriesToolStripMenuItem.Click += new System.EventHandler(this.configurarSeriesToolStripMenuItem_Click);
             // 
@@ -246,17 +249,18 @@
             // 
             this.reportesToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.autorizaciónDeProgramacionesDePagosToolStripMenuItem,
-            this.estatusDePagosToolStripMenuItem1});
+            this.estatusDePagosToolStripMenuItem1,
+            this.detalleDeProgramaciónDePagosToolStripMenuItem});
             this.reportesToolStripMenuItem.Name = "reportesToolStripMenuItem";
             this.reportesToolStripMenuItem.Size = new System.Drawing.Size(65, 20);
             this.reportesToolStripMenuItem.Text = "Reportes";
-            this.reportesToolStripMenuItem.Visible = false;
             // 
             // autorizaciónDeProgramacionesDePagosToolStripMenuItem
             // 
             this.autorizaciónDeProgramacionesDePagosToolStripMenuItem.Name = "autorizaciónDeProgramacionesDePagosToolStripMenuItem";
             this.autorizaciónDeProgramacionesDePagosToolStripMenuItem.Size = new System.Drawing.Size(297, 22);
             this.autorizaciónDeProgramacionesDePagosToolStripMenuItem.Text = "Autorización de programaciones de pagos";
+            this.autorizaciónDeProgramacionesDePagosToolStripMenuItem.Visible = false;
             this.autorizaciónDeProgramacionesDePagosToolStripMenuItem.Click += new System.EventHandler(this.autorizaciónDeProgramacionesDePagosToolStripMenuItem_Click);
             // 
             // estatusDePagosToolStripMenuItem1
@@ -264,6 +268,7 @@
             this.estatusDePagosToolStripMenuItem1.Name = "estatusDePagosToolStripMenuItem1";
             this.estatusDePagosToolStripMenuItem1.Size = new System.Drawing.Size(297, 22);
             this.estatusDePagosToolStripMenuItem1.Text = "Estatus de pagos";
+            this.estatusDePagosToolStripMenuItem1.Visible = false;
             this.estatusDePagosToolStripMenuItem1.Click += new System.EventHandler(this.estatusDePagosToolStripMenuItem1_Click);
             // 
             // dataGridView1
@@ -421,9 +426,11 @@
             this.modificarProgramaciónToolStripMenuItem,
             this.generarPagosToolStripMenuItem,
             this.toolStripSeparator2,
-            this.eliminarProgramaciónDePagoToolStripMenuItem});
+            this.eliminarProgramaciónDePagoToolStripMenuItem,
+            this.toolStripSeparator10,
+            this.repPago1});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(361, 126);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(361, 176);
             this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
             // 
             // verProgramaciónToolStripMenuItem
@@ -610,7 +617,7 @@
             // toolStripLabel3
             // 
             this.toolStripLabel3.Name = "toolStripLabel3";
-            this.toolStripLabel3.Size = new System.Drawing.Size(76, 22);
+            this.toolStripLabel3.Size = new System.Drawing.Size(77, 22);
             this.toolStripLabel3.Text = "Tipo Usuario:";
             // 
             // tipoUsuario
@@ -658,7 +665,7 @@
             // toolStripLabel5
             // 
             this.toolStripLabel5.Name = "toolStripLabel5";
-            this.toolStripLabel5.Size = new System.Drawing.Size(70, 22);
+            this.toolStripLabel5.Size = new System.Drawing.Size(71, 22);
             this.toolStripLabel5.Text = "Es Tesoreria:";
             // 
             // txtTesoreria
@@ -1079,6 +1086,26 @@
             this.eliminarProgramaciónDePagoToolStripMenuItem2.Text = "Eliminar petición de pago";
             this.eliminarProgramaciónDePagoToolStripMenuItem2.Click += new System.EventHandler(this.eliminarProgramaciónDePagoToolStripMenuItem2_Click);
             // 
+            // detalleDeProgramaciónDePagosToolStripMenuItem
+            // 
+            this.detalleDeProgramaciónDePagosToolStripMenuItem.Name = "detalleDeProgramaciónDePagosToolStripMenuItem";
+            this.detalleDeProgramaciónDePagosToolStripMenuItem.Size = new System.Drawing.Size(297, 22);
+            this.detalleDeProgramaciónDePagosToolStripMenuItem.Text = "Detalle de Programación de Pagos";
+            this.detalleDeProgramaciónDePagosToolStripMenuItem.Click += new System.EventHandler(this.detalleDeProgramaciónDePagosToolStripMenuItem_Click);
+            // 
+            // toolStripSeparator10
+            // 
+            this.toolStripSeparator10.Name = "toolStripSeparator10";
+            this.toolStripSeparator10.Size = new System.Drawing.Size(357, 6);
+            // 
+            // repPago1
+            // 
+            this.repPago1.Name = "repPago1";
+            this.repPago1.Size = new System.Drawing.Size(360, 22);
+            this.repPago1.Text = "Ver detalle de pago";
+            this.repPago1.Visible = false;
+            this.repPago1.Click += new System.EventHandler(this.repPago1_Click);
+            // 
             // F_PROGRAMAS
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -1224,5 +1251,8 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn ESTATUS_PROC_2;
         private System.Windows.Forms.DataGridViewTextBoxColumn Autorizacion_2;
         private System.Windows.Forms.DataGridViewTextBoxColumn DOCTO_PR_ID_2;
+        private System.Windows.Forms.ToolStripMenuItem detalleDeProgramaciónDePagosToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator10;
+        private System.Windows.Forms.ToolStripMenuItem repPago1;
     }
 }

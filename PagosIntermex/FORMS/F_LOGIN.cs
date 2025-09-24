@@ -50,6 +50,11 @@ namespace PagosIntermex
                     "&conn_password=" + registros.WEBSVC_MYSQLPASSWORD,
                     2);
             } // */
+
+#if DEBUG
+            tbUser.Text = "MARTIN";
+            tbPassword.Text = "123";
+#endif
         }
 
         private void F_LOGIN_Shown(object sender, EventArgs e)
