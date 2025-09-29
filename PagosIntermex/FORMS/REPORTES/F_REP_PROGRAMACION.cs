@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.SqlClient;
 using System.Drawing;
 using System.Windows.Forms;
+using FirebirdSql.Data.FirebirdClient;
 using Microsoft.Office.Interop.Excel;
 using PagosIntermex;
 using Application = Microsoft.Office.Interop.Excel.Application;
@@ -282,11 +283,11 @@ namespace PagosIntermex.FORMS.REPORTES
                                 ELSE '' 
                             END as 'Concepto',
 
-							/* CASE 
+							 CASE 
                                 WHEN ROW_NUMBER() OVER (PARTITION BY pr.DOCTO_PR_ID ORDER BY det.DOCTO_PR_DET_ID, req.Requisicion_id, reqdet.Requisicion_det_id) = 1 
                                 THEN PPTO.Depto_co_id 
                                 ELSE '' 
-                            END as 'DEPTO_CO_ID', */
+                            END as 'DEPTO_CO_ID', 
 
 							CASE 
                                 WHEN ROW_NUMBER() OVER (PARTITION BY pr.DOCTO_PR_ID ORDER BY det.DOCTO_PR_DET_ID, req.Requisicion_id, reqdet.Requisicion_det_id) = 1 
@@ -416,6 +417,54 @@ namespace PagosIntermex.FORMS.REPORTES
                     da.Fill(dtReporte);
 
                     dgvReporte.DataSource = dtReporte;
+
+                    C_CONEXIONFIREBIRD con = new C_CONEXIONFIREBIRD();
+
+                    if (con.ConectarFB_DEMO())
+                    {
+                        try
+                        {
+                            for (int i = 0; i < dgvReporte.RowCount ; i++)
+                            {
+                                // Verificar si la celda de Concepto tiene valor
+                                if (dgvReporte.Rows[i].Cells["Concepto"].Value != null &&
+                                    !string.IsNullOrWhiteSpace(dgvReporte.Rows[i].Cells["Concepto"].Value.ToString()))
+                                {
+                                    string deptoCoId = dgvReporte.Rows[i].Cells["DEPTO_CO_ID"].Value?.ToString();
+
+                                    if (!string.IsNullOrWhiteSpace(deptoCoId))
+                                    {
+                                        string query_fb = $"SELECT CLAVE FROM DEPTOS_CO WHERE DEPTO_CO_ID = {deptoCoId}";
+
+                                        FbCommand cmd = new FbCommand(query_fb, con.FBC);
+                                        object resultado = cmd.ExecuteScalar();
+
+                                        if (resultado != null)
+                                        {
+                                            string clave = resultado.ToString().Trim();
+                                            string conceptoActual = dgvReporte.Rows[i].Cells["Concepto"].Value.ToString();
+
+                                            // Actualizar el valor con el formato: CLAVE - CONCEPTO
+                                            dgvReporte.Rows[i].Cells["Concepto"].Value = $"{clave} - {conceptoActual}";
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            System.Windows.Forms.MessageBox.Show(
+                                $"Hubo un error al buscar el departamento en Microsip: {e.Message}",
+                                caption: "Mensaje de la aplicación",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Warning);
+                        }
+                        finally
+                        {
+                            con.Desconectar();
+                        }
+                    }
+
                 }
                 finally
                 {
@@ -435,7 +484,7 @@ namespace PagosIntermex.FORMS.REPORTES
             // Ocultar columnas de ID y auxiliares
             var columnasOcultar = new[] {
                 "DOCTO_PR_ID", "DOCTO_PR_DET_ID", "Requisicion_id",
-                "Requisicion_det_id", "ImporteNumerico", "SubtotalNumerico"
+                "Requisicion_det_id", "ImporteNumerico", "SubtotalNumerico", "DEPTO_CO_ID"
             };
 
             foreach (string col in columnasOcultar)

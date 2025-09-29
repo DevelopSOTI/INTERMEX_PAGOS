@@ -126,6 +126,40 @@ namespace PagosIntermex
             }
         }
 
+
+        public bool ConectarFB_DEMO()
+        {
+            try
+            {
+                reg = new C_REGISTROSWINDOWS();
+
+                if (reg.LeerRegistros(true))
+                {
+                    conectionString = @"User=SYSDBA;";
+                    conectionString += "Password=" + reg.FB_PASSWORD + ";";
+                    conectionString += "Database=" + reg.FB_ROOT + "\\" + "DEMO" + ".FDB" + ";";
+                    conectionString += "Datasource=" + reg.FB_SERVIDOR + ";";
+                    conectionString += "Dialect=3;";
+                    conectionString += "Charset=ISO8859_1;";
+
+                    fbc = new FbConnection(conectionString);
+                    fbc.Open();
+
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("No fue posible establecer conexión con la empresa '" + "DEMO" + "'.\n\n" + ex.Message, "Mensaje de la aplicación", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                return false;
+            }
+        }
+
         public bool ConectarFB(string empresa,bool band)
         {
             try
