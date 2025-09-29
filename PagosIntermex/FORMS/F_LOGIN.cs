@@ -52,8 +52,8 @@ namespace PagosIntermex
             } // */
 
 #if DEBUG
-            tbUser.Text = "MARTIN";
-            tbPassword.Text = "123";
+            // tbUser.Text = "MARTIN";
+            // tbPassword.Text = "123";
 #endif
         }
 

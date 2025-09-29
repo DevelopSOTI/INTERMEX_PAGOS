@@ -269,6 +269,50 @@ namespace PagosIntermex.FORMS.REPORTES
                                 THEN pr.FOLIO 
                                 ELSE '' 
                             END as 'Folio Programación',
+
+                            CASE 
+                                WHEN ROW_NUMBER() OVER (PARTITION BY pr.DOCTO_PR_ID ORDER BY det.DOCTO_PR_DET_ID, req.Requisicion_id, reqdet.Requisicion_det_id) = 1 
+                                THEN det.EMPRESA 
+                                ELSE '' 
+                            END as 'Empresa',
+
+							CASE 
+                                WHEN ROW_NUMBER() OVER (PARTITION BY pr.DOCTO_PR_ID ORDER BY det.DOCTO_PR_DET_ID, req.Requisicion_id, reqdet.Requisicion_det_id) = 1 
+                                THEN PPM.Material 
+                                ELSE '' 
+                            END as 'Concepto',
+
+							/* CASE 
+                                WHEN ROW_NUMBER() OVER (PARTITION BY pr.DOCTO_PR_ID ORDER BY det.DOCTO_PR_DET_ID, req.Requisicion_id, reqdet.Requisicion_det_id) = 1 
+                                THEN PPTO.Depto_co_id 
+                                ELSE '' 
+                            END as 'DEPTO_CO_ID', */
+
+							CASE 
+                                WHEN ROW_NUMBER() OVER (PARTITION BY pr.DOCTO_PR_ID ORDER BY det.DOCTO_PR_DET_ID, req.Requisicion_id, reqdet.Requisicion_det_id) = 1 
+                                THEN PPTO.Nombre_Presupuesto 
+                                ELSE '' 
+                            END as 'Proyecto',
+
+							CASE 
+                                WHEN ROW_NUMBER() OVER (PARTITION BY pr.DOCTO_PR_ID ORDER BY det.DOCTO_PR_DET_ID, req.Requisicion_id, reqdet.Requisicion_det_id) = 1 
+                                THEN
+									CASE
+										WHEN SUBSTRING(PPM.Cuenta, 1, 1) = '6' THEN 'Gasto'
+										ELSE 'Costo'
+									END
+                                ELSE '' 
+                            END as 'Tipo gasto',
+
+							CASE 
+                                WHEN ROW_NUMBER() OVER (PARTITION BY pr.DOCTO_PR_ID ORDER BY det.DOCTO_PR_DET_ID, req.Requisicion_id, reqdet.Requisicion_det_id) = 1 
+                                THEN
+									CASE
+										WHEN SUBSTRING(PPM.Cuenta, 1, 1) = '6' THEN 'Corporativo'
+										ELSE 'Cliente'
+									END
+                                ELSE '' 
+                            END as 'Categoria',
                             
                             CASE 
                                 WHEN ROW_NUMBER() OVER (PARTITION BY pr.DOCTO_PR_ID ORDER BY det.DOCTO_PR_DET_ID, req.Requisicion_id, reqdet.Requisicion_det_id) = 1 
@@ -294,6 +338,12 @@ namespace PagosIntermex.FORMS.REPORTES
                                 THEN ISNULL(det.PROVEEDOR_NOMBRE, 'N/A')
                                 ELSE '' 
                             END as 'Proveedor',
+
+                            CASE 
+                                WHEN ROW_NUMBER() OVER (PARTITION BY det.DOCTO_PR_DET_ID ORDER BY req.Requisicion_id, reqdet.Requisicion_det_id) = 1 
+                                THEN ISNULL(det.FOLIO_MICROSIP, 'N/A')
+                                ELSE '' 
+                            END as 'Factura',
                             
                             CASE 
                                 WHEN ROW_NUMBER() OVER (PARTITION BY det.DOCTO_PR_DET_ID ORDER BY req.Requisicion_id, reqdet.Requisicion_det_id) = 1 
@@ -348,6 +398,10 @@ namespace PagosIntermex.FORMS.REPORTES
                         INNER JOIN REQ_ENC req ON det.REQUISICION_ID = req.Requisicion_id
                         INNER JOIN REQ_DET reqdet ON req.Requisicion_id = reqdet.Requisicion_id 
                                                    AND reqdet.Estatus = 'A'
+
+                        INNER JOIN PPTO_PROD_MATERIALES PPM ON(reqdet.ppto_prod_material_id = PPM.Ppto_Prod_Material_Id)
+						INNER JOIN PRESUPUESTOS PPTO ON(PPM.Presupuesto_Id = PPTO.Presupuesto_ID)
+
                         {whereClause}
                         AND det.ESTATUS = 'L'
                         ORDER BY 
@@ -394,10 +448,16 @@ namespace PagosIntermex.FORMS.REPORTES
             var configuracionColumnas = new[]
             {
                 new { Nombre = "Folio Programación", Ancho = 110, Frozen = true },
+                new { Nombre = "Empresa", Ancho = 150, Frozen = true },
+                new { Nombre = "Concepto", Ancho = 250, Frozen = true },
+                new { Nombre = "Proyecto", Ancho = 150, Frozen = true },
+                new { Nombre = "Tipo gasto", Ancho = 90, Frozen = true },
+                new { Nombre = "Categoria", Ancho = 90, Frozen = true },
                 new { Nombre = "Fecha Pago", Ancho = 85, Frozen = true },
                 new { Nombre = "Importe Total", Ancho = 100, Frozen = false },
                 new { Nombre = "Autorizado Por", Ancho = 100, Frozen = false },
                 new { Nombre = "Proveedor", Ancho = 250, Frozen = false },
+                new { Nombre = "Factura", Ancho = 85, Frozen = false },
                 new { Nombre = "Importe Pagando", Ancho = 100, Frozen = false },
                 new { Nombre = "Total Requisición", Ancho = 110, Frozen = false },
                 new { Nombre = "Folio Crédito", Ancho = 100, Frozen = false },
