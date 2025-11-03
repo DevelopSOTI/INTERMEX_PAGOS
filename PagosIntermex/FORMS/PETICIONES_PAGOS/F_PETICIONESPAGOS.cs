@@ -94,8 +94,8 @@ namespace PagosIntermex
             SELECT += "  DMMM.TIPO_DOCTO TIPO_OC, ";
             SELECT += "  DMMM.FOLIO FOLIO_OC ";
             SELECT += "  FROM DOCTOS_CP AS DCP ";
-            SELECT += " JOIN DOCTOS_ENTRE_SIS DES ON DES.DOCTO_DEST_ID = DCP.DOCTO_CP_ID";
-            SELECT += " JOIN DOCTOS_CM DM ON DM.DOCTO_CM_ID = DES.DOCTO_FTE_ID";
+            SELECT += " LEFT JOIN DOCTOS_ENTRE_SIS DES ON DES.DOCTO_DEST_ID = DCP.DOCTO_CP_ID";
+            SELECT += " LEFT JOIN DOCTOS_CM DM ON DM.DOCTO_CM_ID = DES.DOCTO_FTE_ID";
             SELECT += " LEFT JOIN DOCTOS_CM_LIGAS DML ON DML.DOCTO_CM_DEST_ID = DM.DOCTO_CM_ID";
             SELECT += " LEFT JOIN DOCTOS_CM DMM ON DMM.DOCTO_CM_ID = DML.DOCTO_CM_FTE_ID";
             SELECT += " LEFT JOIN DOCTOS_CM_LIGAS DMLL ON DMLL.DOCTO_CM_DEST_ID = DMM.DOCTO_CM_ID";
@@ -105,9 +105,11 @@ namespace PagosIntermex
             SELECT += "  LEFT JOIN CLAVES_PROVEEDORES AS CP ON (P.PROVEEDOR_ID=CP.PROVEEDOR_ID) ";
             SELECT += " INNER JOIN VENCIMIENTOS_CARGOS_CP AS VCCP ON(VCCP.DOCTO_CP_ID = DCP.DOCTO_CP_ID) ";
             SELECT += " WHERE (SELECT SCCP.SALDO_CARGO FROM SALDO_CARGO_CP_S(DCP.DOCTO_CP_ID, '" + DATE_SEARCH + "', 0) SCCP) > 0  " +
-                      "   AND VCCP.FECHA_VENCIMIENTO <= @FECHA_VENCIMIENTO" +
-                      " AND DCP.FECHA <= @FECHA AND DMM.tipo_docto is not null " +
+                      "   AND VCCP.FECHA_VENCIMIENTO BETWEEN @FECHA_LIM AND @FECHA_VENCIMIENTO " +
+                      " AND DCP.FECHA <= @FECHA " +
                       " ORDER BY VCCP.FECHA_VENCIMIENTO DESC";
+
+            // -- AND DMM.tipo_docto is not null 
 
             C_REGISTROSWINDOWS registros = new C_REGISTROSWINDOWS();
 
@@ -133,7 +135,7 @@ namespace PagosIntermex
                     query += " from DOCTOS_CM dc  ";
                     query += " join REQ_ENC re on re.Requisicion_id = dc.Requisicion_ID ";
                     query += " join USUARIOS u on u.Usuario_id = re.Usuario_creador_id ";
-                    query += " where u.Usuario = '" + usuarioLogueado.Usuario + "'";
+                    // query += " where u.Usuario = '" + usuarioLogueado.Usuario + "'";
 
                     SqlCommand sc = new SqlCommand(query, con.SC);
                     SqlDataReader sdr = sc.ExecuteReader();
@@ -185,6 +187,11 @@ namespace PagosIntermex
                     }
 
 
+                    C_EMPRESAS[] empresasTemp = NOMBRE_EMPESA;
+                    if (MostrarSeleccionEmpresas(ref empresasTemp))
+                    {
+                        NOMBRE_EMPESA = empresasTemp;
+                    }
 
                     for (int h = 0; h < NOMBRE_EMPESA.Length; h++)
                     {
@@ -204,6 +211,7 @@ namespace PagosIntermex
                                 cmd = new FbCommand(SELECT, conexion_fb.FBC);
                                 cmd.Parameters.Add("@FECHA_VENCIMIENTO", FbDbType.Date).Value = dtpDateVenc.Value;
                                 cmd.Parameters.Add("@FECHA", FbDbType.Date).Value = dtpFecha.Value;
+                                cmd.Parameters.Add("@FECHA_LIM", FbDbType.Date).Value = dtpExcluir.Value;
 
 
 
@@ -218,9 +226,9 @@ namespace PagosIntermex
                                     string orden_compra = Convert.ToString(reader["TIPO_RECEP"]) == "O" ? Convert.ToString(reader["FOLIO_RECEP"]) : Convert.ToString(reader["FOLIO_OC"]);
 
                                     //buscamos en el arreglo por si existe
-                                    int index = lista.FindIndex(x => x.MSP_FOLIO == orden_compra);
+                                    // int index = lista.FindIndex(x => x.MSP_FOLIO == orden_compra);
 
-                                    if (index >= 0)
+                                    // if (index >= 0)
                                     {
 
                                         string folio_cargo = Convert.ToString(reader["FOLIO_CARGO"]);
@@ -279,7 +287,7 @@ namespace PagosIntermex
                                             dgvProgramas.Rows.Add();
                                             dgvProgramas.Columns["FOLIO_REQ"].Visible = true;
 
-                                            dgvProgramas["FOLIO_REQ", dgvProgramas.RowCount - 1].Value = lista[index].FOLIO_REQ;
+                                            // dgvProgramas["FOLIO_REQ", dgvProgramas.RowCount - 1].Value = lista[index].FOLIO_REQ;
                                             dgvProgramas["dgvp_folio", dgvProgramas.RowCount - 1].Value = folio_cargo;
                                             dgvProgramas["dgvp_fecha", dgvProgramas.RowCount - 1].Value = Convert.ToDateTime(reader["FECHA"].ToString()).ToString("dd/MM/yyyy");
                                             dgvProgramas["dgvp_proveedor", dgvProgramas.RowCount - 1].Value = nombre_proveedor;
@@ -291,7 +299,7 @@ namespace PagosIntermex
                                             dgvProgramas["dgvp_proveedor_id", dgvProgramas.RowCount - 1].Value = reader["PROVEEDOR_ID"].ToString();
                                             dgvProgramas["dgvp_proveedor_clave", dgvProgramas.RowCount - 1].Value = reader["CLAVE_PROV"].ToString();
                                             dgvProgramas["P_EMPRESA", dgvProgramas.RowCount - 1].Value = NOMBRE_EMPESA[h].NOMBRE_CORTO;
-                                            dgvProgramas["Requisicion_id", dgvProgramas.RowCount - 1].Value = lista[index].REQUISICION_ID;
+                                            // dgvProgramas["Requisicion_id", dgvProgramas.RowCount - 1].Value = lista[index].REQUISICION_ID;
 
                                             //esto solo sirve para cuando se modificara y se agregaran nuevos pagos
                                             if (pagosModif1 != null)
@@ -337,13 +345,379 @@ namespace PagosIntermex
                     pbEmpresas.Value = 0;
                     pbEmpresas.Visible = false;
                     txtNo.Visible = false;
-                    txtInfo.Text = "Se encontrarón " + (dgvProgramas.RowCount - 1).ToString() + " pagos en todas las empresas.";
+                    int conteo = dgvProgramas.RowCount - 1 == -1 ? 0 : dgvProgramas.RowCount - 1;
+                    txtInfo.Text = "Se encontrarón " + (conteo).ToString() + " pagos en todas las empresas.";
                     TaskbarManager.Instance.SetProgressState(TaskbarProgressBarState.NoProgress);
                     con.Desconectar();
                 }
             }
 
-        }  
+        }
+
+        // REEMPLAZA TU MÉTODO MostrarSeleccionEmpresas CON ESTA 
+
+
+        public bool MostrarSeleccionEmpresas(ref C_EMPRESAS[] empresas)
+        {
+            if (empresas == null || empresas.Length == 0)
+            {
+                MessageBox.Show("No hay empresas disponibles para seleccionar.", "Información",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return false;
+            }
+
+            // Variable local para evitar problemas con ref en lambdas
+            C_EMPRESAS[] empresasOriginales = empresas;
+            int totalEmpresas = empresas.Length;
+
+            // Crear el formulario dinámicamente
+            Form frmSeleccion = new Form();
+            frmSeleccion.Text = "Selección de Empresas";
+            frmSeleccion.Size = new Size(730, 600);
+            frmSeleccion.StartPosition = FormStartPosition.CenterScreen;
+            frmSeleccion.FormBorderStyle = FormBorderStyle.FixedDialog;
+            frmSeleccion.MaximizeBox = false;
+            frmSeleccion.MinimizeBox = false;
+            frmSeleccion.BackColor = Color.White;
+            frmSeleccion.Font = new Font("Segoe UI", 9F);
+
+           
+
+            
+
+            // DATAGRIDVIEW
+            DataGridView dgvEmpresas = new DataGridView();
+            dgvEmpresas.Dock = DockStyle.Fill;
+            dgvEmpresas.BackgroundColor = Color.White;
+            dgvEmpresas.BorderStyle = BorderStyle.None;
+            dgvEmpresas.AllowUserToAddRows = false;
+            dgvEmpresas.AllowUserToDeleteRows = false;
+            dgvEmpresas.AllowUserToResizeRows = false;
+            dgvEmpresas.AutoGenerateColumns = false;
+            dgvEmpresas.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvEmpresas.MultiSelect = false;
+            dgvEmpresas.RowHeadersVisible = false;
+            dgvEmpresas.EnableHeadersVisualStyles = false;
+            dgvEmpresas.ColumnHeadersHeight = 40;
+            dgvEmpresas.RowTemplate.Height = 35;
+            dgvEmpresas.Font = new Font("Segoe UI", 9F);
+
+            
+
+            // PANEL INFERIOR (Footer)
+            Panel panelFooter = new Panel();
+            panelFooter.Dock = DockStyle.Bottom;
+            panelFooter.Height = 80;
+            panelFooter.BackColor = Color.FromArgb(240, 240, 240);
+            frmSeleccion.Controls.Add(panelFooter);
+
+            // Panel contenedor del DataGridView
+            Panel panelGrid = new Panel();
+            panelGrid.Dock = DockStyle.Fill;
+            panelGrid.Padding = new Padding(20, 10, 20, 10);
+            panelGrid.BackColor = Color.White;
+            panelGrid.Controls.Add(dgvEmpresas);
+            frmSeleccion.Controls.Add(panelGrid);
+
+            // PANEL DE BÚSQUEDA Y BOTONES
+            Panel panelBusqueda = new Panel();
+            panelBusqueda.Dock = DockStyle.Top;
+            panelBusqueda.Height = 70;
+            panelBusqueda.BackColor = Color.White;
+            panelBusqueda.Padding = new Padding(20, 10, 20, 10);
+            frmSeleccion.Controls.Add(panelBusqueda);
+
+
+
+            // PANEL SUPERIOR (Header)
+            Panel panelHeader = new Panel();
+            panelHeader.Dock = DockStyle.Top;
+            panelHeader.Height = 80;
+            panelHeader.BackColor = Color.FromArgb(46, 59, 104);
+            frmSeleccion.Controls.Add(panelHeader);
+
+            // Título
+            Label lblTitulo = new Label();
+            lblTitulo.Text = "Seleccione las Empresas a Procesar";
+            lblTitulo.Font = new Font("Segoe UI", 14F, FontStyle.Bold);
+            lblTitulo.ForeColor = Color.White;
+            lblTitulo.AutoSize = false;
+            lblTitulo.Size = new Size(650, 30);
+            lblTitulo.Location = new Point(25, 15);
+            lblTitulo.TextAlign = ContentAlignment.MiddleLeft;
+            panelHeader.Controls.Add(lblTitulo);
+
+            // Subtítulo con contador
+            Label lblSubtitulo = new Label();
+            lblSubtitulo.Text = $"Total de empresas disponibles: {totalEmpresas}";
+            lblSubtitulo.Font = new Font("Segoe UI", 9F);
+            lblSubtitulo.ForeColor = Color.FromArgb(220, 220, 220);
+            lblSubtitulo.AutoSize = false;
+            lblSubtitulo.Size = new Size(650, 20);
+            lblSubtitulo.Location = new Point(25, 45);
+            panelHeader.Controls.Add(lblSubtitulo);
+
+            // Label de búsqueda
+            Label lblBuscar = new Label();
+            lblBuscar.Text = "Buscar:";
+            lblBuscar.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            lblBuscar.ForeColor = Color.FromArgb(46, 59, 104);
+            lblBuscar.Location = new Point(20, 15);
+            lblBuscar.AutoSize = true;
+            panelBusqueda.Controls.Add(lblBuscar);
+
+            // TextBox de búsqueda
+            TextBox txtBuscar = new TextBox();
+            txtBuscar.Font = new Font("Segoe UI", 10F);
+            txtBuscar.Location = new Point(20, 35);
+            txtBuscar.Size = new Size(300, 25);
+            txtBuscar.BorderStyle = BorderStyle.FixedSingle;
+            txtBuscar.CharacterCasing  = new CharacterCasing();
+            panelBusqueda.Controls.Add(txtBuscar);
+
+            // Botón Seleccionar Todas
+            Button btnSeleccionarTodas = new Button();
+            btnSeleccionarTodas.Text = "✓ Seleccionar Todas";
+            btnSeleccionarTodas.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnSeleccionarTodas.Size = new Size(150, 35);
+            btnSeleccionarTodas.Location = new Point(340, 30);
+            btnSeleccionarTodas.BackColor = Color.FromArgb(46, 59, 104);
+            btnSeleccionarTodas.ForeColor = Color.White;
+            btnSeleccionarTodas.FlatStyle = FlatStyle.Flat;
+            btnSeleccionarTodas.FlatAppearance.BorderSize = 0;
+            btnSeleccionarTodas.Cursor = Cursors.Hand;
+            panelBusqueda.Controls.Add(btnSeleccionarTodas);
+
+            // Botón Deseleccionar Todas
+            Button btnDeseleccionarTodas = new Button();
+            btnDeseleccionarTodas.Text = "✗ Deseleccionar Todas";
+            btnDeseleccionarTodas.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnDeseleccionarTodas.Size = new Size(170, 35);
+            btnDeseleccionarTodas.Location = new Point(500, 30);
+            btnDeseleccionarTodas.BackColor = Color.FromArgb(220, 220, 220);
+            btnDeseleccionarTodas.ForeColor = Color.FromArgb(46, 59, 104);
+            btnDeseleccionarTodas.FlatStyle = FlatStyle.Flat;
+            btnDeseleccionarTodas.FlatAppearance.BorderSize = 0;
+            btnDeseleccionarTodas.Cursor = Cursors.Hand;
+            panelBusqueda.Controls.Add(btnDeseleccionarTodas);
+
+            
+
+            // Estilos del header
+            dgvEmpresas.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(46, 59, 104);
+            dgvEmpresas.ColumnHeadersDefaultCellStyle.ForeColor = Color.White;
+            dgvEmpresas.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            dgvEmpresas.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            dgvEmpresas.ColumnHeadersDefaultCellStyle.Padding = new Padding(10, 0, 0, 0);
+
+            // Estilos de las celdas
+            dgvEmpresas.DefaultCellStyle.SelectionBackColor = Color.FromArgb(46, 59, 104);
+            dgvEmpresas.DefaultCellStyle.SelectionForeColor = Color.White;
+            dgvEmpresas.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(245, 245, 245);
+            dgvEmpresas.GridColor = Color.FromArgb(220, 220, 220);
+            dgvEmpresas.CellBorderStyle = DataGridViewCellBorderStyle.SingleHorizontal;
+
+            // Columna CheckBox
+            DataGridViewCheckBoxColumn colCheck = new DataGridViewCheckBoxColumn();
+            colCheck.Name = "colSeleccionar";
+            colCheck.HeaderText = "✓";
+            colCheck.Width = 60;
+            colCheck.DataPropertyName = "SELECCIONADO";
+            dgvEmpresas.Columns.Add(colCheck);
+
+            // Columna Nombre
+            DataGridViewTextBoxColumn colNombre = new DataGridViewTextBoxColumn();
+            colNombre.Name = "colNombre";
+            colNombre.HeaderText = "Nombre de Empresa";
+            colNombre.DataPropertyName = "NOMBRE_CORTO";
+            colNombre.Width = 580;
+            colNombre.ReadOnly = true;
+            dgvEmpresas.Columns.Add(colNombre);
+
+            // Columna ID (oculta)
+            DataGridViewTextBoxColumn colID = new DataGridViewTextBoxColumn();
+            colID.Name = "colID";
+            colID.HeaderText = "ID";
+            colID.DataPropertyName = "EMPRESA_ID";
+            colID.Visible = false;
+            dgvEmpresas.Columns.Add(colID);
+
+            
+
+           
+
+            // Label de seleccionadas
+            Label lblSeleccionadas = new Label();
+            lblSeleccionadas.Text = "Seleccionadas: 0";
+            lblSeleccionadas.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            lblSeleccionadas.ForeColor = Color.FromArgb(46, 59, 104);
+            lblSeleccionadas.Location = new Point(25, 25);
+            lblSeleccionadas.AutoSize = true;
+            panelFooter.Controls.Add(lblSeleccionadas);
+
+            // Botón Cancelar
+            Button btnCancelar = new Button();
+            btnCancelar.Text = "Cancelar";
+            btnCancelar.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            btnCancelar.Size = new Size(120, 40);
+            btnCancelar.Location = new Point(450, 20);
+            btnCancelar.BackColor = Color.FromArgb(220, 220, 220);
+            btnCancelar.ForeColor = Color.FromArgb(46, 59, 104);
+            btnCancelar.FlatStyle = FlatStyle.Flat;
+            btnCancelar.FlatAppearance.BorderSize = 0;
+            btnCancelar.Cursor = Cursors.Hand;
+            btnCancelar.DialogResult = DialogResult.Cancel;
+            panelFooter.Controls.Add(btnCancelar);
+
+            // Botón Aceptar
+            Button btnAceptar = new Button();
+            btnAceptar.Text = "Aceptar";
+            btnAceptar.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            btnAceptar.Size = new Size(120, 40);
+            btnAceptar.Location = new Point(580, 20);
+            btnAceptar.BackColor = Color.FromArgb(46, 59, 104);
+            btnAceptar.ForeColor = Color.White;
+            btnAceptar.FlatStyle = FlatStyle.Flat;
+            btnAceptar.FlatAppearance.BorderSize = 0;
+            btnAceptar.Cursor = Cursors.Hand;
+            btnAceptar.DialogResult = DialogResult.OK;
+            panelFooter.Controls.Add(btnAceptar);
+
+            // Crear DataTable y cargar empresas
+            DataTable dtEmpresas = new DataTable();
+            dtEmpresas.Columns.Add("SELECCIONADO", typeof(bool));
+            dtEmpresas.Columns.Add("NOMBRE_CORTO", typeof(string));
+            dtEmpresas.Columns.Add("EMPRESA_ID", typeof(int));
+
+            foreach (var empresa in empresasOriginales)
+            {
+                dtEmpresas.Rows.Add(true, empresa.NOMBRE_CORTO, empresa.EMPRESA_ID);
+            }
+
+            dgvEmpresas.DataSource = dtEmpresas;
+
+            // Método para actualizar contador
+            Action ActualizarContador = () =>
+            {
+                int seleccionadas = 0;
+                foreach (DataRow row in dtEmpresas.Rows)
+                {
+                    if (Convert.ToBoolean(row["SELECCIONADO"]))
+                        seleccionadas++;
+                }
+                lblSeleccionadas.Text = $"Seleccionadas: {seleccionadas} de {totalEmpresas}";
+            };
+
+            ActualizarContador();
+
+            // EVENTOS - Usar nombres únicos para evitar conflictos
+            btnSeleccionarTodas.Click += (sender, args) =>
+            {
+                foreach (DataRow row in dtEmpresas.Rows)
+                    row["SELECCIONADO"] = true;
+                dgvEmpresas.Refresh();
+                ActualizarContador();
+            };
+
+            btnDeseleccionarTodas.Click += (sender, args) =>
+            {
+                foreach (DataRow row in dtEmpresas.Rows)
+                    row["SELECCIONADO"] = false;
+                dgvEmpresas.Refresh();
+                ActualizarContador();
+            };
+
+            txtBuscar.TextChanged += (sender, args) =>
+            {
+                string filtro = txtBuscar.Text.Trim();
+                if (string.IsNullOrEmpty(filtro))
+                {
+                    dtEmpresas.DefaultView.RowFilter = string.Empty;
+                }
+                else
+                {
+                    // Escapar caracteres especiales y usar * en lugar de %
+                    string filtroEscapado = filtro.Replace("'", "''")
+                                                  .Replace("[", "[[]")
+                                                  .Replace("*", "[*]")
+                                                  .Replace("%", "[%]");
+
+                    // Usar * para comodines en DataTable (equivalente a % en SQL)
+                    dtEmpresas.DefaultView.RowFilter = string.Format("NOMBRE_CORTO LIKE '{0}*'", filtroEscapado);
+                }
+                ActualizarContador();
+            };
+
+            dgvEmpresas.CellValueChanged += (sender, args) =>
+            {
+                if (args.RowIndex >= 0 && args.ColumnIndex == 0)
+                {
+                    ActualizarContador();
+                }
+            };
+
+            dgvEmpresas.CurrentCellDirtyStateChanged += (sender, args) =>
+            {
+                if (dgvEmpresas.IsCurrentCellDirty && dgvEmpresas.CurrentCell.ColumnIndex == 0)
+                {
+                    dgvEmpresas.CommitEdit(DataGridViewDataErrorContexts.Commit);
+                }
+            };
+
+            // Efecto hover en botones
+            Action<Button> AgregarEfectoHover = (btn) =>
+            {
+                Color colorOriginal = btn.BackColor;
+                btn.MouseEnter += (sender, args) =>
+                {
+                    btn.BackColor = Color.FromArgb(
+                        Math.Min(colorOriginal.R + 20, 255),
+                        Math.Min(colorOriginal.G + 20, 255),
+                        Math.Min(colorOriginal.B + 20, 255)
+                    );
+                };
+                btn.MouseLeave += (sender, args) => { btn.BackColor = colorOriginal; };
+            };
+
+            AgregarEfectoHover(btnAceptar);
+            AgregarEfectoHover(btnCancelar);
+            AgregarEfectoHover(btnSeleccionarTodas);
+            AgregarEfectoHover(btnDeseleccionarTodas);
+
+            // Mostrar formulario
+            DialogResult resultado = frmSeleccion.ShowDialog();
+
+            if (resultado == DialogResult.OK)
+            {
+                // Obtener empresas seleccionadas
+                var empresasSeleccionadas = dtEmpresas.AsEnumerable()
+                    .Where(row => Convert.ToBoolean(row["SELECCIONADO"]))
+                    .Select(row => new C_EMPRESAS
+                    {
+                        NOMBRE_CORTO = Convert.ToString(row["NOMBRE_CORTO"]),
+                        EMPRESA_ID = Convert.ToInt32(row["EMPRESA_ID"])
+                    })
+                    .ToArray();
+
+                if (empresasSeleccionadas.Length == 0)
+                {
+                    MessageBox.Show("Debe seleccionar al menos una empresa.", "Advertencia",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    frmSeleccion.Dispose();
+                    return false;
+                }
+
+                // Redimensionar el arreglo
+                empresas = empresasSeleccionadas;
+                frmSeleccion.Dispose();
+                return true;
+            }
+            else
+            {
+                frmSeleccion.Dispose();
+                return false;
+            }
+        }
 
         private void button3_Click(object sender, EventArgs e)
         {

@@ -511,48 +511,52 @@ namespace PagosIntermex
         public C_EMPRESAS[] TraerEmpresas()
         {
             //empresas para las pruebas de oficina
-            C_EMPRESAS[] prueba = new C_EMPRESAS[4];
-            prueba[0] = new C_EMPRESAS();
+            C_EMPRESAS[] prueba = new C_EMPRESAS[5];
+           prueba[0] = new C_EMPRESAS();
             prueba[1] = new C_EMPRESAS();
             prueba[2] = new C_EMPRESAS();
             prueba[3] = new C_EMPRESAS();
+            prueba[4] = new C_EMPRESAS();
             prueba[0].NOMBRE_CORTO = "WE KEEP ON MOVING";
             prueba[1].NOMBRE_CORTO = "SUPERV TECNICA NORTE PPTO";
             prueba[2].NOMBRE_CORTO = "IMX COMERCIAL SA CV";
-            prueba[3].NOMBRE_CORTO = "ANTILA S RL CV";// */
+            prueba[3].NOMBRE_CORTO = "ANTILA S RL CV";
+            prueba[4].NOMBRE_CORTO = "KOM BUSINESS";
+            // */
 
-            C_CONEXIONFIREBIRD conexion_fb = new C_CONEXIONFIREBIRD();
+           // C_CONEXIONFIREBIRD conexion_fb = new C_CONEXIONFIREBIRD();
+            C_ConexionSQL con = new C_ConexionSQL();
             C_REGISTROSWINDOWS registros = new C_REGISTROSWINDOWS();
-            FbCommand cmd;
-            FbDataReader reader;
+            //FbCommand cmd;
+            SqlCommand cmd;
+            //FbDataReader reader;
+            SqlDataReader reader;
             C_EMPRESAS[] emp = new C_EMPRESAS[0];
             if (registros.LeerRegistros(false))
             {
                 //seleccionamos todas las empresas
-                if (conexion_fb.ConectarFB_MANUAL("SYSDBA", registros.FB_PASSWORD, registros.FB_ROOT, registros.FB_SERVIDOR))
+              //  if (conexion_fb.ConectarFB_MANUAL("SYSDBA", registros.FB_PASSWORD, registros.FB_ROOT, registros.FB_SERVIDOR))
+              if(con.ConectarSQL())
                 {
-                    string QUERY = "SELECT NOMBRE_CORTO, EMPRESA_ID FROM EMPRESAS ORDER BY NOMBRE_CORTO";
+                    //string QUERY = "SELECT NOMBRE_CORTO, EMPRESA_ID FROM EMPRESAS ORDER BY NOMBRE_CORTO";
+                    string QUERY = "SELECT * FROM EMPRESAS_ACTIVAS WHERE EMPRESA_ESTATUS = 'A'";
 
-
-                    cmd = new FbCommand(QUERY, conexion_fb.FBC);
+                    cmd = new SqlCommand(QUERY, con.SC);
                     reader = cmd.ExecuteReader();
                     if (reader.HasRows)
                     {
                         while (reader.Read())
                         {
-                            if (Convert.ToString(reader["NOMBRE_CORTO"]) == prueba[0].NOMBRE_CORTO
-                                || Convert.ToString(reader["NOMBRE_CORTO"]) == prueba[1].NOMBRE_CORTO
-                                || Convert.ToString(reader["NOMBRE_CORTO"]) == prueba[2].NOMBRE_CORTO
-                                || Convert.ToString(reader["NOMBRE_CORTO"]) == prueba[3].NOMBRE_CORTO)
-                            {
-                                Array.Resize(ref emp, emp.Length + 1);
-                                emp[emp.Length - 1] = new C_EMPRESAS();
+                            Array.Resize(ref emp, emp.Length + 1);
+                            emp[emp.Length - 1] = new C_EMPRESAS();
 
-                                emp[emp.Length - 1].NOMBRE_CORTO = Convert.ToString(reader["NOMBRE_CORTO"]);
-                                emp[emp.Length - 1].EMPRESA_ID = Convert.ToInt32(Convert.ToString(reader["EMPRESA_ID"]));
-                            } // */
+                            emp[emp.Length - 1].NOMBRE_CORTO = Convert.ToString(reader["NOMBRE_EMPRESA"]);
+                            emp[emp.Length - 1].EMPRESA_ID = Convert.ToInt32(Convert.ToString(reader["EMPRESA_MICROSIP_ID"]));
 
-                            /* Array.Resize(ref emp, emp.Length + 1);
+
+                           // */
+
+                             /* Array.Resize(ref emp, emp.Length + 1);
                             emp[emp.Length - 1] = new C_EMPRESAS();
 
                             emp[emp.Length - 1].NOMBRE_CORTO = Convert.ToString(reader["NOMBRE_CORTO"]);
@@ -563,7 +567,7 @@ namespace PagosIntermex
                     reader.Close();
                     cmd.Dispose();
 
-                    conexion_fb.Desconectar();
+                    con.Desconectar();
                 }
             }
             return emp;

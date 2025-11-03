@@ -41,16 +41,39 @@ namespace PagosIntermex
 
         bool NO_ELIMINABLE = false;
 
+
+        private const int NIVEL_FINAL = 0;  // Nivel más alto de autorización
+        private const int NIVEL_INICIAL = 5; // Nivel más bajo (ejemplo)
+
+        // Método auxiliar para validar niveles
+        private bool EsNivelFinal(int nivel)
+        {
+            return nivel == NIVEL_FINAL;
+        }
+
+        private bool TieneSiguienteNivel(int nivel)
+        {
+            return nivel > NIVEL_FINAL;
+        }
+
+
         private void Cargar()
         {
             C_AUT_PAGOS f = new C_AUT_PAGOS();
             pagos = f.GET_DETALLES(FOLIO,Convert.ToInt32(NIVEL_DATAGRID));
-            //f.SET_USERS(FOLIO, dgvUser);
-            //f.SET_USERS(usuarioLogueado.NIVEL-1, dgvUser);
-            /*if(NIVEL_DATAGRID=="1")
-                f.SET_USERS(Convert.ToInt32(NIVEL_DATAGRID), FOLIO, dgvUser);
-            else*/
-                f.SET_USERS(Convert.ToInt32(NIVEL_DATAGRID) - 1,FOLIO, dgvUser);
+
+            // CORRECCIÓN: Validar antes de restar
+            int nivelUsuarios = Convert.ToInt32(NIVEL_DATAGRID);
+            if (TieneSiguienteNivel(nivelUsuarios))
+            {
+                f.SET_USERS(nivelUsuarios - 1, FOLIO, dgvUser);
+            }
+            else
+            {
+                // Si es nivel final (0), no hay usuarios que cargar
+                dgvUser.Visible = false;
+                label3.Visible = false;
+            }
             C_USUARIOS u = new C_USUARIOS();
             //USUARIO_ID = u.GET_USUARIO_ID(USUARIO);
             string msg_local = "";
@@ -359,15 +382,41 @@ namespace PagosIntermex
 
         private void F_DETALLEPROGRAMACIONPAGOS_Load(object sender, EventArgs e)
         {
+            // VALIDACIÓN CRÍTICA: Verificar coherencia de niveles
+            int nivelDataGrid = Convert.ToInt32(NIVEL_DATAGRID);
+            int nivelUsuario = usuarioLogueado.NIVEL;
+
+            if (nivelDataGrid < NIVEL_FINAL)
+            {
+                MessageBox.Show("El nivel de autorización es inválido.",
+                               "Error de configuración",
+                               MessageBoxButtons.OK,
+                               MessageBoxIcon.Error);
+                this.Close();
+                return;
+            }
+            
+                
+                if (nivelUsuario < nivelDataGrid)
+                {
+                    MessageBox.Show("No tiene permisos para autorizar en este nivel.\n" +
+                                   $"Su nivel: {nivelUsuario}\n" +
+                                   $"Nivel requerido: {nivelDataGrid}",
+                                   "Acceso denegado",
+                                   MessageBoxButtons.OK,
+                                   MessageBoxIcon.Warning);
+                    this.Close();
+                    return;
+                }
+            
+
+
             dGVDetPagos.DoubleBuffered(true);
-
-            // Cargar los pagos del folio seleccionado
             Cargar();
-
             WindowState = FormWindowState.Maximized;
             txtUser.Text = usuarioLogueado.Usuario;
 
-            
+
         }
 
         private void dGVDetPagos_EditingControlShowing(object sender, DataGridViewEditingControlShowingEventArgs e)
@@ -409,7 +458,7 @@ namespace PagosIntermex
 
 
         // Autorizar pagos
-        private void button1_Click(object sender, EventArgs e)
+        private void button1_Click2(object sender, EventArgs e)
         {
             // Validar que no tenga Ceros
             bool _Ceros = false;
@@ -465,22 +514,57 @@ namespace PagosIntermex
             }
 
             #endregion
+
             #region DESPÚES VALIDAMOS QUE AL MENOS HAYA SELECCIONADO ALGUN USUARIO
 
-            for (int i = 0; i < dgvUser.Rows.Count; i++)
+            /* for (int i = 0; i < dgvUser.Rows.Count; i++)
+             {
+                 if (Convert.ToBoolean(dgvUser["AUTORIZADO_AUT", i].Value))
+                 {
+                     string[,] _usuario = new string [,] { { Convert.ToString(dgvUser["USUARIO_ID", i].Value) },{ Convert.ToString(dgvUser["NIVEL", i].Value) } };
+                     _usuarios.Add(_usuario);
+                     _seleccionado2++;
+                 }
+             }*/
+
+            #region VALIDACIÓN MEJORADA DE USUARIOS
+
+            int nivelActual = Convert.ToInt32(NIVEL_DATAGRID);
+            bool requiereUsuariosSeleccionados = TieneSiguienteNivel(nivelActual);
+
+            // Validar usuarios seleccionados solo si NO es el nivel final
+            if (requiereUsuariosSeleccionados)
             {
-                if (Convert.ToBoolean(dgvUser["AUTORIZADO_AUT", i].Value))
+                for (int i = 0; i < dgvUser.Rows.Count; i++)
                 {
-                    string[,] _usuario = new string [,] { { Convert.ToString(dgvUser["USUARIO_ID", i].Value) },{ Convert.ToString(dgvUser["NIVEL", i].Value) } };
-                    _usuarios.Add(_usuario);
-                    _seleccionado2++;
+                    if (Convert.ToBoolean(dgvUser["AUTORIZADO_AUT", i].Value))
+                    {
+                        string[,] _usuario = new string[,] {
+                    { Convert.ToString(dgvUser["USUARIO_ID", i].Value) },
+                    { Convert.ToString(dgvUser["NIVEL", i].Value) }
+                };
+                        _usuarios.Add(_usuario);
+                        _seleccionado2++;
+                    }
+                }
+
+                // Solo validar si requiere usuarios
+                if (_seleccionado2 == 0)
+                {
+                    MessageBox.Show("Debe seleccionar al menos un usuario del siguiente nivel.",
+                                  "Mensaje de pagos",
+                                  MessageBoxButtons.OK,
+                                  MessageBoxIcon.Warning);
+                    return;
                 }
             }
 
             #endregion
+
+            #endregion
             if (_seleccionado > 0)
             {
-                if (_seleccionado2 > 0 || Convert.ToInt32(NIVEL_DATAGRID)==1)
+              //  if (_seleccionado2 > 0 || Convert.ToInt32(NIVEL_DATAGRID)==1)
                 {
                     if (usuarioLogueado.U_ROL == "A")
                     {
@@ -519,9 +603,9 @@ namespace PagosIntermex
                                                 {
                                                     double _montoAutorizado = 0.0;
                                                     _montoAutorizado = Convert.ToDouble(_Pag_selec[6]);
-                                                    consulta  = " UPDATE P_AUT_DOCTOS_PR SET ";
+                                                    consulta = " UPDATE P_AUT_DOCTOS_PR SET ";
                                                     consulta += " MONTO_AUTORIZADO =" + _montoAutorizado;
-                                                    consulta += " ,ESTATUS ='A'" ;
+                                                    consulta += " ,ESTATUS ='A'";
                                                     consulta += " WHERE DOCTO_PR_DET_ID = '" + _Pag_selec[0] + "'";
                                                     consulta += " AND USUARIO_ID = " + usuarioLogueado.Usuario_id;//Agregar monto Acrtualizar el nivel del encabezado a -1 y agregar nuevo registro con nivel -1 topar nivel a .1
                                                     cmd = new SqlCommand(consulta, conexion.SC, transaction);
@@ -532,8 +616,8 @@ namespace PagosIntermex
                                                         {
                                                             //Buscar si exite el usuario para la programacion indicada
                                                             consulta = "select * from P_AUT_DOCTOS_PR where DOCTO_PR_DET_ID=" + _Pag_selec[0] +
-                                                                " and USUARIO_ID =" + _usuario[0, 0] +" AND NIVEL="+ _usuario[1, 0];
-                                                            
+                                                                " and USUARIO_ID =" + _usuario[0, 0] + " AND NIVEL=" + _usuario[1, 0];
+
                                                             SqlDataAdapter _da = new SqlDataAdapter(consulta, conexion.SC);
                                                             _da.SelectCommand.Transaction = transaction;
                                                             DataTable _existeUsuario = new DataTable();
@@ -552,7 +636,7 @@ namespace PagosIntermex
                                                                 " , " + _usuario[0, 0] +
                                                                 " , 'P' " +
                                                                 " ,NULL" +
-                                                                " ,"+ _usuario[1, 0] + ")";
+                                                                " ," + _usuario[1, 0] + ")";
 
                                                                 cmd = new SqlCommand(consulta, conexion.SC, transaction);
                                                                 if (cmd.ExecuteNonQuery() == 0)
@@ -574,7 +658,7 @@ namespace PagosIntermex
                                             bool actualizarEncabezado = false;
 
                                             List<int> DetallesAprobados = new List<int>();
-
+                                            /*
                                             foreach (List<string> _Pag_selec in _Seleccionados)
                                             {
                                                 //consulta para saber si ya se autorizo aunque sea un pago en especifico
@@ -621,9 +705,72 @@ namespace PagosIntermex
                                                 cmd.Dispose();
                                                 sdr.Close();
                                             }
+                                            */
 
+                                            foreach (List<string> _Pag_selec in _Seleccionados)
+                                            {
+                                                consulta = "SELECT TOTAL - AUTORIZADOS AS DIF FROM ";
+                                                consulta += " (SELECT COUNT(*) TOTAL, ";
+                                                consulta += " (SELECT COUNT(*) FROM P_AUT_DOCTOS_PR p ";
+                                                consulta += " WHERE p.DOCTO_PR_DET_ID = " + _Pag_selec[0];
+                                                consulta += " AND p.ESTATUS = 'A' AND NIVEL = " + NIVEL_DATAGRID + ") AUTORIZADOS ";
+                                                consulta += " FROM P_AUT_DOCTOS_PR ";
+                                                consulta += " WHERE DOCTO_PR_DET_ID = " + _Pag_selec[0];
+                                                consulta += " AND NIVEL = " + NIVEL_DATAGRID + ") AS CP ";
+                                                consulta += " GROUP BY CP.TOTAL, CP.AUTORIZADOS";
+
+                                                cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                SqlDataReader sdr = cmd.ExecuteReader();
+
+                                                while (sdr.Read())
+                                                {
+                                                    int _dif = Convert.ToInt32(Convert.ToString(sdr["DIF"]));
+                                                    if (_dif == 0)
+                                                    {
+                                                        actualizarEncabezado = true;
+                                                        DetallesAprobados.Add(Convert.ToInt32(_Pag_selec[0]));
+
+                                                        // CORRECCIÓN: Manejar correctamente el siguiente nivel
+                                                        if (TieneSiguienteNivel(Convert.ToInt32(NIVEL_DATAGRID)))
+                                                        {
+                                                            // Si hay siguiente nivel, crear registros para usuarios del nivel anterior
+                                                            foreach (string[,] _usuario in _usuarios)
+                                                            {
+                                                                consulta = " UPDATE P_AUT_DOCTOS_PR SET ";
+                                                                consulta += " ESTATUS = 'C'";
+                                                                consulta += " WHERE DOCTO_PR_DET_ID = '" + _Pag_selec[0] + "'";
+                                                                consulta += " AND USUARIO_ID = " + _usuario[0, 0];
+
+                                                                cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                                if (cmd.ExecuteNonQuery() > 0)
+                                                                {
+                                                                    consulta = " UPDATE P_DOCTOS_PR SET ";
+                                                                    consulta += " NIVEL = " + (Convert.ToInt32(NIVEL_DATAGRID) - 1);
+                                                                    consulta += " WHERE FOLIO = '" + FOLIO + "'";
+                                                                    cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                                    cmd.ExecuteNonQuery();
+                                                                }
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            // Es el nivel final, marcar como completamente autorizado
+                                                            consulta = " UPDATE P_DOCTOS_PR SET ";
+                                                            consulta += " ESTATUS_PROC = 'A', ";
+                                                            consulta += " NIVEL = " + NIVEL_FINAL;
+                                                            consulta += " WHERE FOLIO = '" + FOLIO + "'";
+                                                            cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                            cmd.ExecuteNonQuery();
+                                                        }
+                                                    }
+                                                }
+                                                cmd.Dispose();
+                                                sdr.Close();
+                                            }
                                             #endregion
-                                            C_AUT_PAGOS f = new C_AUT_PAGOS();
+
+                                            ///se vienen lineas de cambios desde C_aut_pagos f hasta el dispose
+                                            /*C_AUT_PAGOS f = new C_AUT_PAGOS();
                                             if (actualizarEncabezado && Convert.ToInt32(NIVEL_DATAGRID) == 1)
                                             {
                                                 #region ACTUALIZA ENCABEZADO
@@ -660,10 +807,38 @@ namespace PagosIntermex
                                                 cmd.Parameters.Add("@FechaAutorizo", SqlDbType.DateTime).Value = DateTime.Now;
                                                 cmd.ExecuteNonQuery();
                                                 cmd.Dispose();
+                                                */
+                                            C_AUT_PAGOS f = new C_AUT_PAGOS();
+                                            if (actualizarEncabezado)
+                                            {
+                                                if (EsNivelFinal(Convert.ToInt32(NIVEL_DATAGRID)))
+                                                {
+                                                    // Lógica para nivel final (autorización completa)
+                                                    _ImporteTotal = 0.0;
+                                                    foreach (List<string> _Pag_selec in _Seleccionados)
+                                                    {
+                                                        _ImporteTotal += f.ObtenerMenorMontoAutorizado(FOLIO,
+                                                                                                       Convert.ToInt32(_Pag_selec[0]),
+                                                                                                       conexion,
+                                                                                                       transaction,
+                                                                                                       out msg_local);
+                                                    }
 
+                                                    // Actualizar a estado final autorizado
+                                                    consulta = "UPDATE P_DOCTOS_PR SET ";
+                                                    consulta += "IMPORTE_AUTORIZADO = " + _ImporteTotal + ", ";
+                                                    consulta += "ESTATUS_PROC = 'A', ";
+                                                    consulta += "USUARIO_AUTORIZO = '" + usuarioLogueado.Usuario + "', ";
+                                                    consulta += "FECHA_HORA_AUTORIZO = @FechaAutorizo ";
+                                                    consulta += "WHERE FOLIO = '" + FOLIO + "'";
 
-                                                //actualizamos el estatus del encabezado de P_DOCTOS_PP a 'A'
-                                                consulta = "UPDATE P_DOCTOS_PP SET" +
+                                                    cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                    cmd.Parameters.Add("@FechaAutorizo", SqlDbType.DateTime).Value = DateTime.Now;
+                                                    cmd.ExecuteNonQuery();
+                                                    cmd.Dispose();
+
+                                                    //actualizamos el estatus del encabezado de P_DOCTOS_PP a 'A'
+                                                    consulta = "UPDATE P_DOCTOS_PP SET" +
                                                     "       ESTATUS_PROC = 'A'" +
                                                     /*"       USUARIO_AUTORIZO = '" + usuarioLogueado.Usuario + "', " +
                                                     "       FECHA_HORA_AUTORIZO = '" + DateTime.Now.ToString("dd.MM.yyy HH:mm:ss") + "' " +*/
@@ -674,147 +849,180 @@ namespace PagosIntermex
                                                     " where " +
                                                     " DPR.FOLIO = '" + FOLIO + "' " +
                                                     " group by DPP.DOCTO_PP_ID)";
-                                                cmd = new SqlCommand(consulta, conexion.SC, transaction);
-                                                cmd.ExecuteNonQuery();
-                                                cmd.Dispose();
-                                                #endregion 
-                                                // Actualizar estatus de  P_DOCTOS_PR_DET y P_DOCTOS_PP_DET que no fueron autorizadas a estatus "X"
-                                                string _idsSeleccionados = "";
+                                                    cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                    cmd.ExecuteNonQuery();
+                                                    cmd.Dispose();
+
+                                                    // Actualizar estatus de  P_DOCTOS_PR_DET y P_DOCTOS_PP_DET que no fueron autorizadas a estatus "X"
+                                                    string _idsSeleccionados = "";
+                                                    foreach (List<string> _Pag_selec in _Seleccionados)
+                                                    {
+                                                        //Obtener el folio para validar si es una requisicion
+                                                        // De no tenerlo en el arreglo hacer un método para buscarlo
+                                                        string _folioReq = _Pag_selec[1];
+                                                        if (_folioReq.Contains("REQ"))
+                                                        {
+                                                            DataTable _requisicion = new DataTable();
+                                                            _requisicion = f.DatosRequisicion(Convert.ToInt32(_Pag_selec[0]), out msg_local);
+                                                            if (_requisicion.Rows.Count > 0)
+                                                            {
+                                                                //Cambiar el estatus de la requisicion a "S" ->surtido
+                                                                string _reqID = Convert.ToString(_requisicion.Rows[0]["REQUISICION_ID"]); //Obtener el id de la requisicion
+                                                                if (_reqID.Length > 0)
+                                                                {
+                                                                    consulta = "UPDATE REQ_ENC " +
+                                                                      " SET Estatus_general = 'S'" +
+                                                                      " WHERE Requisicion_id = " + _reqID;
+                                                                    cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                                    cmd.ExecuteNonQuery();
+                                                                    cmd.Dispose();
+                                                                }
+
+                                                            }
+                                                        }
+                                                        _idsSeleccionados += _Pag_selec[0] + ",";
+                                                    }
+                                                    /*Actualizar DOCTOS_PR_DET de estatus "C" o "P" a "X"   */
+                                                    _idsSeleccionados = _idsSeleccionados.Substring(0, _idsSeleccionados.Length - 1);
+                                                    consulta = "update P_DOCTOS_PR_DET " +
+                                                        " set ESTATUS = 'X' " +
+                                                        " where DOCTO_PR_ID = (" +
+                                                        "  select DPRD.DOCTO_PR_ID from P_DOCTOS_PR as PDPR " +
+                                                        " INNER JOIN P_DOCTOS_PR_DET AS DPRD on PDPR.DOCTO_PR_ID = DPRD.DOCTO_PR_ID " +
+                                                        " where " +
+                                                        " PDPR.FOLIO = '" + FOLIO + "' and DPRD.DOCTO_PR_DET_ID NOT IN (" + _idsSeleccionados + ") group by DPRD.DOCTO_PR_ID)";
+
+                                                    cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                    if (cmd.ExecuteNonQuery() > 0)
+                                                    {
+                                                    }
+                                                    /*else
+                                                    {
+                                                        cmd.Dispose();
+                                                        transaction.Rollback();
+                                                        conexion.Desconectar();
+                                                        MessageBox.Show("Error al intentar actualizar el estatus de la tabla P_DOCTOS_PR_DET", "Error", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                                        return;
+                                                    }*/
+                                                    /*Actualizar DOCTOS_PP_DET de estatus "T" a "X"   */
+                                                    consulta = "update P_DOCTOS_PP_DET " +
+                                                        " set ESTATUS = 'X' " +
+                                                        " where DOCTO_PP_DET_ID in " +
+                                                        " (select DPPD.DOCTO_PP_DET_ID from P_DOCTOS_PP_DET AS DPPD " +
+                                                        " INNER JOIN P_DOCTOS_PR_DET AS PDPD ON PDPD.FOLIO_MICROSIP = DPPD.FOLIO_MICROSIP and PDPD.DOCTO_PP_DET_ID = DPPD.DOCTO_PP_DET_ID  " +
+                                                        " INNER JOIN P_DOCTOS_PR as PDPR on PDPD.DOCTO_PR_ID = PDPR.DOCTO_PR_ID " +
+                                                        " where " +
+                                                        " PDPR.FOLIO = '" + FOLIO + "' and PDPD.ESTATUS = 'X')";
+
+                                                    cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                    if (cmd.ExecuteNonQuery() == 0)
+                                                    {
+                                                        /* cmd.Dispose();
+                                                         transaction.Rollback();
+                                                         conexion.Desconectar();
+                                                         MessageBox.Show("Error al intentar actualizar el estatus de la tabla P_DOCTOS_PP_DET", "Error", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                                         return;*/
+                                                    }
+
+                                                    cmd.Dispose();
+                                                }
+                                                #region ACTUALIZA DETALLE
+
+
+
                                                 foreach (List<string> _Pag_selec in _Seleccionados)
                                                 {
-                                                    //Obtener el folio para validar si es una requisicion
-                                                    // De no tenerlo en el arreglo hacer un método para buscarlo
-                                                    string _folioReq = _Pag_selec[1];
-                                                    if (_folioReq.Contains("REQ"))
+                                                    string aux = //Convert.ToString(_Pag_selec[6]).Replace(",", "");
+                                                    aux = Convert.ToString(f.ObtenerMenorMontoAutorizado(FOLIO, Convert.ToInt32(_Pag_selec[0]), conexion, transaction, out msg_local));
+                                                    C_AUT_PAGOS _f = new C_AUT_PAGOS();
+                                                    if (DetallesAprobados.Count > 0)
                                                     {
-                                                        DataTable _requisicion = new DataTable();
-                                                        _requisicion = f.DatosRequisicion(Convert.ToInt32(_Pag_selec[0]), out msg_local);
-                                                        if (_requisicion.Rows.Count > 0)
+                                                        for (int i = 0; i < DetallesAprobados.Count; i++)
                                                         {
-                                                            //Cambiar el estatus de la requisicion a "S" ->surtido
-                                                            string _reqID = Convert.ToString(_requisicion.Rows[0]["REQUISICION_ID"]); //Obtener el id de la requisicion
-                                                            if (_reqID.Length > 0)
+                                                            if (DetallesAprobados[i] == Convert.ToInt32(_Pag_selec[0]))
                                                             {
-                                                                consulta = "UPDATE REQ_ENC " +
-                                                                  " SET Estatus_general = 'S'" +
-                                                                  " WHERE Requisicion_id = " + _reqID;
+                                                                consulta = "UPDATE P_DOCTOS_PR_DET SET ";
+                                                                if (usuarioLogueado.U_ROL == "A")
+                                                                {
+                                                                    consulta += "       IMPORTE_AUTORIZADO = " + aux + ", ";
+                                                                    consulta += "       ESTATUS = 'A' ";
+
+                                                                }
+                                                                else
+                                                                {
+                                                                    consulta += "       IMPORTE_CAPTURISTA = " + aux + ", ";
+                                                                    consulta += "       ESTATUS = 'C' ";
+                                                                }
+                                                                consulta += " WHERE DOCTO_PR_DET_ID = '" + _Pag_selec[0] + "'";
+                                                                cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                                cmd.ExecuteNonQuery();
+                                                                /*if (cmd.ExecuteNonQuery() > 0)
+                                                                    foreach (string[,] _usuario in _usuarios)
+                                                                        _f.InsertarUsuarioAutorizarDetalle(Convert.ToInt32(_Pag_selec[0]),Convert.ToInt32(_usuario[0,0]),conexion,transaction,out msg_local);*/
+                                                                cmd.Dispose();
+                                                                break;
+                                                            }
+                                                            else
+                                                            {
+                                                                consulta = "UPDATE P_DOCTOS_PR_DET SET ";
+                                                                if (usuarioLogueado.U_ROL == "A")
+                                                                {
+                                                                    consulta += "       IMPORTE_AUTORIZADO = " + aux + ", ";
+                                                                    consulta += "       ESTATUS = 'P' ";
+
+                                                                }
+                                                                else
+                                                                {
+                                                                    consulta += "       IMPORTE_CAPTURISTA = " + aux + ", ";
+                                                                    consulta += "       ESTATUS = 'C' ";
+                                                                }
+                                                                consulta += " WHERE DOCTO_PR_DET_ID = '" + _Pag_selec[0] + "'";
                                                                 cmd = new SqlCommand(consulta, conexion.SC, transaction);
                                                                 cmd.ExecuteNonQuery();
                                                                 cmd.Dispose();
                                                             }
-
                                                         }
+
                                                     }
-                                                    _idsSeleccionados += _Pag_selec[0]+",";
-                                                }
-                                                /*Actualizar DOCTOS_PR_DET de estatus "C" o "P" a "X"   */
-                                                _idsSeleccionados = _idsSeleccionados.Substring(0, _idsSeleccionados.Length - 1);
-                                                consulta = "update P_DOCTOS_PR_DET " +
-                                                    " set ESTATUS = 'X' " +
-                                                    " where DOCTO_PR_ID = (" +
-                                                    "  select DPRD.DOCTO_PR_ID from P_DOCTOS_PR as PDPR " +
-                                                    " INNER JOIN P_DOCTOS_PR_DET AS DPRD on PDPR.DOCTO_PR_ID = DPRD.DOCTO_PR_ID " +
-                                                    " where " +
-                                                    " PDPR.FOLIO = '" + FOLIO + "' and DPRD.DOCTO_PR_DET_ID NOT IN ("+_idsSeleccionados+") group by DPRD.DOCTO_PR_ID)";
-
-                                                cmd = new SqlCommand(consulta, conexion.SC, transaction);
-                                                if (cmd.ExecuteNonQuery() > 0)
-                                                {
-                                                }
-                                                /*else
-                                                {
-                                                    cmd.Dispose();
-                                                    transaction.Rollback();
-                                                    conexion.Desconectar();
-                                                    MessageBox.Show("Error al intentar actualizar el estatus de la tabla P_DOCTOS_PR_DET", "Error", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                                                    return;
-                                                }*/
-                                                /*Actualizar DOCTOS_PP_DET de estatus "T" a "X"   */
-                                                consulta = "update P_DOCTOS_PP_DET " +
-                                                    " set ESTATUS = 'X' " +
-                                                    " where DOCTO_PP_DET_ID in " +
-                                                    " (select DPPD.DOCTO_PP_DET_ID from P_DOCTOS_PP_DET AS DPPD " +
-                                                    " INNER JOIN P_DOCTOS_PR_DET AS PDPD ON PDPD.FOLIO_MICROSIP = DPPD.FOLIO_MICROSIP and PDPD.DOCTO_PP_DET_ID = DPPD.DOCTO_PP_DET_ID  " +
-                                                    " INNER JOIN P_DOCTOS_PR as PDPR on PDPD.DOCTO_PR_ID = PDPR.DOCTO_PR_ID " +
-                                                    " where " +
-                                                    " PDPR.FOLIO = '" + FOLIO + "' and PDPD.ESTATUS = 'X')";
-
-                                                cmd = new SqlCommand(consulta, conexion.SC, transaction);
-                                                if (cmd.ExecuteNonQuery() == 0)
-                                                {
-                                                    /* cmd.Dispose();
-                                                     transaction.Rollback();
-                                                     conexion.Desconectar();
-                                                     MessageBox.Show("Error al intentar actualizar el estatus de la tabla P_DOCTOS_PP_DET", "Error", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                                                     return;*/
-                                                }
-
-                                                cmd.Dispose();
-                                            }
-                                            #region ACTUALIZA DETALLE
-                                            foreach (List<string> _Pag_selec in _Seleccionados)
-                                            {
-                                                string aux = //Convert.ToString(_Pag_selec[6]).Replace(",", "");
-                                                aux = Convert.ToString(f.ObtenerMenorMontoAutorizado(FOLIO,Convert.ToInt32(_Pag_selec[0]),conexion,transaction, out msg_local));
-                                                C_AUT_PAGOS _f = new C_AUT_PAGOS();
-                                                if (DetallesAprobados.Count > 0)
-                                                {
-                                                    for (int i = 0; i < DetallesAprobados.Count; i++)
+                                                    else
                                                     {
-                                                        if (DetallesAprobados[i] == Convert.ToInt32(_Pag_selec[0]))
+                                                        consulta = "UPDATE P_DOCTOS_PR_DET SET ";
+                                                        if (usuarioLogueado.U_ROL == "A")
                                                         {
-                                                            consulta = "UPDATE P_DOCTOS_PR_DET SET ";
-                                                            if (usuarioLogueado.U_ROL == "A")
-                                                            {
-                                                                consulta += "       IMPORTE_AUTORIZADO = " + aux + ", ";
-                                                                consulta += "       ESTATUS = 'A' ";
+                                                            consulta += "       IMPORTE_AUTORIZADO = " + aux + ", ";
 
-                                                            }
-                                                            else
-                                                            {
-                                                                consulta += "       IMPORTE_CAPTURISTA = " + aux + ", ";
-                                                                consulta += "       ESTATUS = 'C' ";
-                                                            }
-                                                            consulta += " WHERE DOCTO_PR_DET_ID = '" + _Pag_selec[0] + "'";
-                                                            cmd = new SqlCommand(consulta, conexion.SC, transaction);
-                                                            cmd.ExecuteNonQuery();
-                                                            /*if (cmd.ExecuteNonQuery() > 0)
-                                                                foreach (string[,] _usuario in _usuarios)
-                                                                    _f.InsertarUsuarioAutorizarDetalle(Convert.ToInt32(_Pag_selec[0]),Convert.ToInt32(_usuario[0,0]),conexion,transaction,out msg_local);*/
-                                                            cmd.Dispose();
-                                                            break;
+                                                            consulta += "       ESTATUS = 'P' ";
+
                                                         }
                                                         else
                                                         {
-                                                            consulta = "UPDATE P_DOCTOS_PR_DET SET ";
-                                                            if (usuarioLogueado.U_ROL == "A")
-                                                            {
-                                                                consulta += "       IMPORTE_AUTORIZADO = " + aux + ", ";
-                                                                consulta += "       ESTATUS = 'P' ";
-
-                                                            }
-                                                            else
-                                                            {
-                                                                consulta += "       IMPORTE_CAPTURISTA = " + aux + ", ";
-                                                                consulta += "       ESTATUS = 'C' ";
-                                                            }
-                                                            consulta += " WHERE DOCTO_PR_DET_ID = '" + _Pag_selec[0] + "'";
-                                                            cmd = new SqlCommand(consulta, conexion.SC, transaction);
-                                                            cmd.ExecuteNonQuery();
-                                                            cmd.Dispose();
+                                                            consulta += "       IMPORTE_CAPTURISTA = " + aux + ", ";
+                                                            consulta += "       ESTATUS = 'C' ";
                                                         }
+                                                        consulta += " WHERE DOCTO_PR_DET_ID = '" + _Pag_selec[0] + "'";
+                                                        cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                        cmd.ExecuteNonQuery();
+                                                        cmd.Dispose();
                                                     }
-                                                    
-                                                }
-                                                else
-                                                {
-                                                    consulta = "UPDATE P_DOCTOS_PR_DET SET ";
+
+
+
+
+
+
+                                                    /*consulta = "UPDATE P_DOCTOS_PR_DET SET ";
                                                     if (usuarioLogueado.U_ROL == "A")
                                                     {
                                                         consulta += "       IMPORTE_AUTORIZADO = " + aux + ", ";
 
-                                                        consulta += "       ESTATUS = 'P' ";
-
+                                                        if (actualizarEncabezado)
+                                                        {
+                                                            consulta += "       ESTATUS = 'A' ";
+                                                        }
+                                                        else
+                                                        {
+                                                            consulta += "       ESTATUS = 'P' ";
+                                                        }
                                                     }
                                                     else
                                                     {
@@ -824,49 +1032,21 @@ namespace PagosIntermex
                                                     consulta += " WHERE DOCTO_PR_DET_ID = '" + _Pag_selec[0] + "'";
                                                     cmd = new SqlCommand(consulta, conexion.SC, transaction);
                                                     cmd.ExecuteNonQuery();
-                                                    cmd.Dispose();
+                                                    cmd.Dispose();*/
                                                 }
-
-                                               
-
+                                                #endregion
 
 
 
-                                                /*consulta = "UPDATE P_DOCTOS_PR_DET SET ";
-                                                if (usuarioLogueado.U_ROL == "A")
-                                                {
-                                                    consulta += "       IMPORTE_AUTORIZADO = " + aux + ", ";
 
-                                                    if (actualizarEncabezado)
-                                                    {
-                                                        consulta += "       ESTATUS = 'A' ";
-                                                    }
-                                                    else
-                                                    {
-                                                        consulta += "       ESTATUS = 'P' ";
-                                                    }
-                                                }
-                                                else
-                                                {
-                                                    consulta += "       IMPORTE_CAPTURISTA = " + aux + ", ";
-                                                    consulta += "       ESTATUS = 'C' ";
-                                                }
-                                                consulta += " WHERE DOCTO_PR_DET_ID = '" + _Pag_selec[0] + "'";
-                                                cmd = new SqlCommand(consulta, conexion.SC, transaction);
-                                                cmd.ExecuteNonQuery();
-                                                cmd.Dispose();*/
+                                                transaction.Commit();
+                                                conexion.Desconectar();
+
+                                                Close();
                                             }
-                                            #endregion
 
-                                            
-
-                                            transaction.Commit();
-                                            conexion.Desconectar();
-
-                                            Close();
+                                            Cargar();
                                         }
-
-                                        Cargar();
                                     }
                                     catch (Exception Ex)
                                     {
@@ -980,8 +1160,612 @@ namespace PagosIntermex
 
                     }
                 }
+              //  else                    MessageBox.Show("Ningún usuario ha sido seleccionado.", "Mensaje de pagos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            else
+            {
+                MessageBox.Show("Ningún pago ha sido seleccionado.", "Mensaje de pagos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+
+        private void button1_Click(object sender, EventArgs e)
+        {
+            // Validar que no tenga Ceros
+            bool _Ceros = false;
+
+            double _ImporteTotal = 0.0;
+
+            int _seleccionado = 0;
+            int _seleccionado2 = 0;
+
+            DialogResult _resp = DialogResult.No;
+            List<List<string>> _Seleccionados = new List<List<string>>();
+            List<string[,]> _usuarios = new List<string[,]>();
+
+            #region PRIMERO VALIDAMOS QUE AL MENOS HAYA SELECCIONADO ALGUN PAGO
+
+            for (int i = 0; i < dGVDetPagos.Rows.Count; i++)
+            {
+                if (Convert.ToBoolean(dGVDetPagos["Autorizar", i].Value))
+                {
+                    double importe = 0;
+                    string aux = Convert.ToString(dGVDetPagos["IMPORTE_AUT", i].Value);
+
+                    List<string> _seleccion = new List<string>();
+
+                    if (aux.Length == 0)
+                    {
+                        aux = "0.0";
+                    }
+
+                    importe = Convert.ToDouble(aux);
+
+                    if (importe <= 0)
+                    {
+                        _Ceros = true;
+                    }
+
+                    _ImporteTotal += importe;
+
+                    _seleccion.Add(Convert.ToString(dGVDetPagos["DOCTO_PR_DET_ID", i].Value));
+                    _seleccion.Add(Convert.ToString(dGVDetPagos["FOLIO_P", i].Value));
+                    _seleccion.Add(Convert.ToString(dGVDetPagos["FECHA_P", i].Value));
+                    _seleccion.Add(Convert.ToString(dGVDetPagos["PROVEEDOR_P", i].Value));
+                    _seleccion.Add(Convert.ToString(dGVDetPagos["FECHA_VEN", i].Value));
+                    _seleccion.Add(Convert.ToString(dGVDetPagos["IMPORTE_P", i].Value));
+                    _seleccion.Add(Convert.ToString(dGVDetPagos["IMPORTE_AUT", i].Value));
+                    _seleccion.Add(Convert.ToString(dGVDetPagos["ESTATUS_P", i].Value));
+                    _seleccion.Add(Convert.ToString(dGVDetPagos["P_EMPRESA", i].Value));
+
+                    _seleccionado++;
+
+                    _Seleccionados.Add(_seleccion);
+                }
+            }
+
+            #endregion
+
+            #region VALIDACIÓN MEJORADA DE USUARIOS
+
+            int nivelActual = Convert.ToInt32(NIVEL_DATAGRID);
+            bool requiereUsuariosSeleccionados = TieneSiguienteNivel(nivelActual);
+
+            // Validar usuarios seleccionados solo si NO es el nivel final
+            if (requiereUsuariosSeleccionados)
+            {
+                for (int i = 0; i < dgvUser.Rows.Count; i++)
+                {
+                    if (Convert.ToBoolean(dgvUser["AUTORIZADO_AUT", i].Value))
+                    {
+                        string[,] _usuario = new string[,] {
+                    { Convert.ToString(dgvUser["USUARIO_ID", i].Value) },
+                    { Convert.ToString(dgvUser["NIVEL", i].Value) }
+                };
+                        _usuarios.Add(_usuario);
+                        _seleccionado2++;
+                    }
+                }
+
+                // Solo validar si requiere usuarios
+                if (_seleccionado2 == 0)
+                {
+                    MessageBox.Show("Debe seleccionar al menos un usuario del siguiente nivel.",
+                                  "Mensaje de pagos",
+                                  MessageBoxButtons.OK,
+                                  MessageBoxIcon.Warning);
+                    return;
+                }
+            }
+
+            #endregion
+
+            if (_seleccionado > 0)
+            {
+                if (usuarioLogueado.U_ROL == "A")
+                {
+                    if (MessageBox.Show("¿Desea autorizar los pagos seleccionados?", "Mensaje de pagos", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                    {
+                        C_REGISTROSWINDOWS registros = new C_REGISTROSWINDOWS();
+
+                        C_ConexionSQL conexion = new C_ConexionSQL();
+                        SqlTransaction transaction;
+                        SqlCommand cmd;
+
+                        string msg_local = "";
+                        string consulta = "";
+
+                        if (registros.LeerRegistros(false))
+                        {
+                            if (conexion.ConectarSQL())
+                            {
+                                transaction = conexion.SC.BeginTransaction();
+
+                                try
+                                {
+                                    if (_Ceros == true)
+                                    {
+                                        _resp = MessageBox.Show("Importe total autorizado \"" + _ImporteTotal.ToString("C2") + "\"\n\rEl monto autorizado de uno o mas " +
+                                           "pagos es cero\n\rFavor de agregar un monto correcto", "Mensaje de pagos", MessageBoxButtons.OK, MessageBoxIcon.Question);
+                                    }
+
+                                    if (_Ceros == false || _resp == DialogResult.Yes)
+                                    {
+                                        #region ACTUALIZA TABLA DE AUTORIZACIONES
+                                        if (usuarioLogueado.U_ROL == "A" && usuarioLogueado.Usuario_id != 0)
+                                        {
+
+                                            foreach (List<string> _Pag_selec in _Seleccionados)
+                                            {
+                                                double _montoAutorizado = 0.0;
+                                                _montoAutorizado = Convert.ToDouble(_Pag_selec[6]);
+                                                consulta = " UPDATE P_AUT_DOCTOS_PR SET ";
+                                                consulta += " MONTO_AUTORIZADO =" + _montoAutorizado;
+                                                consulta += " ,ESTATUS ='A'";
+                                                consulta += " WHERE DOCTO_PR_DET_ID = '" + _Pag_selec[0] + "'";
+                                                consulta += " AND USUARIO_ID = " + usuarioLogueado.Usuario_id;
+                                                cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                if (cmd.ExecuteNonQuery() == 1)
+                                                {
+                                                    //Insertar nuevo registro con usuarios de nivel superior 
+                                                    foreach (string[,] _usuario in _usuarios)
+                                                    {
+                                                        //Buscar si existe el usuario para la programacion indicada
+                                                        consulta = "select * from P_AUT_DOCTOS_PR where DOCTO_PR_DET_ID=" + _Pag_selec[0] +
+                                                            " and USUARIO_ID =" + _usuario[0, 0] + " AND NIVEL=" + _usuario[1, 0];
+
+                                                        SqlDataAdapter _da = new SqlDataAdapter(consulta, conexion.SC);
+                                                        _da.SelectCommand.Transaction = transaction;
+                                                        DataTable _existeUsuario = new DataTable();
+                                                        _da.Fill(_existeUsuario);
+                                                        if (_existeUsuario.Rows.Count == 0)
+                                                        {
+                                                            //Sino existe insertar el nuevo usuario
+                                                            consulta = " INSERT INTO P_AUT_DOCTOS_PR " +
+                                                            " (DOCTO_PR_DET_ID " +
+                                                            " , USUARIO_ID " +
+                                                            " , ESTATUS " +
+                                                            " , MONTO_AUTORIZADO" +
+                                                            " , NIVEL) " +
+                                                            " VALUES " +
+                                                            " (" + _Pag_selec[0] +
+                                                            " , " + _usuario[0, 0] +
+                                                            " , 'P' " +
+                                                            " ,NULL" +
+                                                            " ," + _usuario[1, 0] + ")";
+
+                                                            cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                            if (cmd.ExecuteNonQuery() == 0)
+                                                            {
+                                                                transaction.Rollback();
+                                                                cmd.Dispose();
+                                                                conexion.Desconectar();
+                                                                MessageBox.Show("No se pudo completar la operación favor de reintentar", "Información", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                                                return;
+                                                            }
+                                                        }
+                                                        _da.Dispose();
+                                                    }
+                                                }
+                                                cmd.Dispose();
+                                            }
+
+                                        }
+
+                                        bool actualizarEncabezado = false;
+                                        List<int> DetallesAprobados = new List<int>();
+
+                                        foreach (List<string> _Pag_selec in _Seleccionados)
+                                        {
+                                            consulta = "SELECT TOTAL - AUTORIZADOS AS DIF FROM ";
+                                            consulta += " (SELECT COUNT(*) TOTAL, ";
+                                            consulta += " (SELECT COUNT(*) FROM P_AUT_DOCTOS_PR p ";
+                                            consulta += " WHERE p.DOCTO_PR_DET_ID = " + _Pag_selec[0];
+                                            consulta += " AND p.ESTATUS = 'A' AND NIVEL = " + NIVEL_DATAGRID + ") AUTORIZADOS ";
+                                            consulta += " FROM P_AUT_DOCTOS_PR ";
+                                            consulta += " WHERE DOCTO_PR_DET_ID = " + _Pag_selec[0];
+                                            consulta += " AND NIVEL = " + NIVEL_DATAGRID + ") AS CP ";
+                                            consulta += " GROUP BY CP.TOTAL, CP.AUTORIZADOS";
+
+                                            cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                            SqlDataReader sdr = cmd.ExecuteReader();
+
+                                            while (sdr.Read())
+                                            {
+                                                int _dif = Convert.ToInt32(Convert.ToString(sdr["DIF"]));
+                                                if (_dif == 0)
+                                                {
+                                                    actualizarEncabezado = true;
+                                                    DetallesAprobados.Add(Convert.ToInt32(_Pag_selec[0]));
+                                                }
+                                            }
+                                            sdr.Close();
+                                            cmd.Dispose();
+                                        }
+
+                                        // CORRECCIÓN: Manejar correctamente el siguiente nivel
+                                        if (actualizarEncabezado)
+                                        {
+                                            if (TieneSiguienteNivel(Convert.ToInt32(NIVEL_DATAGRID)))
+                                            {
+                                                // Si hay siguiente nivel, crear registros para usuarios del nivel anterior
+                                                foreach (string[,] _usuario in _usuarios)
+                                                {
+                                                    foreach (int detalleId in DetallesAprobados)
+                                                    {
+                                                        consulta = " UPDATE P_AUT_DOCTOS_PR SET ";
+                                                        consulta += " ESTATUS = 'C'";
+                                                        consulta += " WHERE DOCTO_PR_DET_ID = " + detalleId;
+                                                        consulta += " AND USUARIO_ID = " + _usuario[0, 0];
+
+                                                        cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                        cmd.ExecuteNonQuery();
+                                                        cmd.Dispose();
+                                                    }
+                                                }
+
+                                                consulta = " UPDATE P_DOCTOS_PR SET ";
+                                                consulta += " NIVEL = " + (Convert.ToInt32(NIVEL_DATAGRID) - 1) + ", ";
+                                                consulta += " ESTATUS_PROC = 'P' ";
+                                                consulta += " WHERE FOLIO = '" + FOLIO + "'";
+                                                cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                cmd.ExecuteNonQuery();
+                                                cmd.Dispose();
+                                            }
+                                            else
+                                            {
+                                                // Es el nivel final, marcar como completamente autorizado
+                                                consulta = " UPDATE P_DOCTOS_PR SET ";
+                                                consulta += " ESTATUS_PROC = 'A', ";
+                                                consulta += " NIVEL = " + NIVEL_FINAL;
+                                                consulta += " WHERE FOLIO = '" + FOLIO + "'";
+                                                cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                cmd.ExecuteNonQuery();
+                                                cmd.Dispose();
+                                            }
+                                        }
+                                        #endregion
+
+                                        C_AUT_PAGOS f = new C_AUT_PAGOS();
+                                        if (actualizarEncabezado)
+                                        {
+                                            if (EsNivelFinal(Convert.ToInt32(NIVEL_DATAGRID)))
+                                            {
+                                                #region NIVEL FINAL - AUTORIZACIÓN COMPLETA
+
+                                                // Lógica para nivel final (autorización completa)
+                                                _ImporteTotal = 0.0;
+                                                foreach (List<string> _Pag_selec in _Seleccionados)
+                                                {
+                                                    _ImporteTotal += f.ObtenerMenorMontoAutorizado(FOLIO,
+                                                                                                   Convert.ToInt32(_Pag_selec[0]),
+                                                                                                   conexion,
+                                                                                                   transaction,
+                                                                                                   out msg_local);
+                                                    if (msg_local.Length > 0)
+                                                    {
+                                                        transaction.Rollback();
+                                                        conexion.Desconectar();
+                                                        MessageBox.Show("Error al intentar obtener los montos autorizados", "Información", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                                        return;
+                                                    }
+                                                }
+
+                                                // Actualizar a estado final autorizado
+                                                consulta = "UPDATE P_DOCTOS_PR SET ";
+                                                consulta += "IMPORTE_AUTORIZADO = " + _ImporteTotal + ", ";
+                                                consulta += "ESTATUS_PROC = 'A', ";
+                                                consulta += "USUARIO_AUTORIZO = '" + usuarioLogueado.Usuario + "', ";
+                                                consulta += "FECHA_HORA_AUTORIZO = @FechaAutorizo ";
+                                                consulta += "WHERE FOLIO = '" + FOLIO + "'";
+
+                                                cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                cmd.Parameters.Add("@FechaAutorizo", SqlDbType.DateTime).Value = DateTime.Now;
+                                                cmd.ExecuteNonQuery();
+                                                cmd.Dispose();
+
+                                                //actualizamos el estatus del encabezado de P_DOCTOS_PP a 'A'
+                                                consulta = "UPDATE P_DOCTOS_PP SET" +
+                                                "       ESTATUS_PROC = 'A'" +
+                                                " WHERE DOCTO_PP_ID in (select DPP.DOCTO_PP_ID from P_DOCTOS_PP as DPP " +
+                                                " inner join P_DOCTOS_PP_DET as DPPD on DPP.DOCTO_PP_ID = DPPD.DOCTO_PP_ID " +
+                                                " inner join P_DOCTOS_PR_DET as DPRD on DPPD.FOLIO_MICROSIP = DPRD.FOLIO_MICROSIP " +
+                                                " inner join P_DOCTOS_PR as DPR on DPRD.DOCTO_PR_ID = DPR.DOCTO_PR_ID " +
+                                                " where " +
+                                                " DPR.FOLIO = '" + FOLIO + "' " +
+                                                " group by DPP.DOCTO_PP_ID)";
+                                                cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                cmd.ExecuteNonQuery();
+                                                cmd.Dispose();
+
+                                                // Actualizar estatus de  P_DOCTOS_PR_DET y P_DOCTOS_PP_DET que no fueron autorizadas a estatus "X"
+                                                string _idsSeleccionados = "";
+                                                foreach (List<string> _Pag_selec in _Seleccionados)
+                                                {
+                                                    //Obtener el folio para validar si es una requisicion
+                                                    string _folioReq = _Pag_selec[1];
+                                                    if (_folioReq.Contains("REQ"))
+                                                    {
+                                                        DataTable _requisicion = new DataTable();
+                                                        _requisicion = f.DatosRequisicion(Convert.ToInt32(_Pag_selec[0]), out msg_local);
+                                                        if (_requisicion.Rows.Count > 0)
+                                                        {
+                                                            //Cambiar el estatus de la requisicion a "S" ->surtido
+                                                            string _reqID = Convert.ToString(_requisicion.Rows[0]["REQUISICION_ID"]);
+                                                            if (_reqID.Length > 0)
+                                                            {
+                                                                consulta = "UPDATE REQ_ENC " +
+                                                                  " SET Estatus_general = 'S'" +
+                                                                  " WHERE Requisicion_id = " + _reqID;
+                                                                cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                                cmd.ExecuteNonQuery();
+                                                                cmd.Dispose();
+                                                            }
+                                                        }
+                                                    }
+                                                    _idsSeleccionados += _Pag_selec[0] + ",";
+                                                }
+
+                                                /*Actualizar DOCTOS_PR_DET de estatus "C" o "P" a "X"*/
+                                                if (_idsSeleccionados.Length > 0)
+                                                {
+                                                    _idsSeleccionados = _idsSeleccionados.Substring(0, _idsSeleccionados.Length - 1);
+                                                    consulta = "update P_DOCTOS_PR_DET " +
+                                                        " set ESTATUS = 'X' " +
+                                                        " where DOCTO_PR_ID = (" +
+                                                        "  select DPRD.DOCTO_PR_ID from P_DOCTOS_PR as PDPR " +
+                                                        " INNER JOIN P_DOCTOS_PR_DET AS DPRD on PDPR.DOCTO_PR_ID = DPRD.DOCTO_PR_ID " +
+                                                        " where " +
+                                                        " PDPR.FOLIO = '" + FOLIO + "' and DPRD.DOCTO_PR_DET_ID NOT IN (" + _idsSeleccionados + ") group by DPRD.DOCTO_PR_ID)";
+
+                                                    cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                    cmd.ExecuteNonQuery();
+                                                    cmd.Dispose();
+
+                                                    /*Actualizar DOCTOS_PP_DET de estatus "T" a "X"*/
+                                                    consulta = "update P_DOCTOS_PP_DET " +
+                                                        " set ESTATUS = 'X' " +
+                                                        " where DOCTO_PP_DET_ID in " +
+                                                        " (select DPPD.DOCTO_PP_DET_ID from P_DOCTOS_PP_DET AS DPPD " +
+                                                        " INNER JOIN P_DOCTOS_PR_DET AS PDPD ON PDPD.FOLIO_MICROSIP = DPPD.FOLIO_MICROSIP and PDPD.DOCTO_PP_DET_ID = DPPD.DOCTO_PP_DET_ID  " +
+                                                        " INNER JOIN P_DOCTOS_PR as PDPR on PDPD.DOCTO_PR_ID = PDPR.DOCTO_PR_ID " +
+                                                        " where " +
+                                                        " PDPR.FOLIO = '" + FOLIO + "' and PDPD.ESTATUS = 'X')";
+
+                                                    cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                    cmd.ExecuteNonQuery();
+                                                    cmd.Dispose();
+                                                }
+
+                                                #endregion
+                                            }
+                                            else
+                                            {
+                                                #region NIVEL INTERMEDIO - PASAR AL SIGUIENTE NIVEL
+
+                                                // Nivel intermedio, solo actualizar para pasar al siguiente
+                                                _ImporteTotal = 0.0;
+                                                foreach (List<string> _Pag_selec in _Seleccionados)
+                                                {
+                                                    _ImporteTotal += f.ObtenerMenorMontoAutorizado(FOLIO,
+                                                                                                   Convert.ToInt32(_Pag_selec[0]),
+                                                                                                   conexion,
+                                                                                                   transaction,
+                                                                                                   out msg_local);
+                                                    if (msg_local.Length > 0)
+                                                    {
+                                                        transaction.Rollback();
+                                                        conexion.Desconectar();
+                                                        MessageBox.Show("Error al intentar obtener los montos autorizados",
+                                                                      "Información",
+                                                                      MessageBoxButtons.OK,
+                                                                      MessageBoxIcon.Information);
+                                                        return;
+                                                    }
+                                                }
+
+                                                consulta = "UPDATE P_DOCTOS_PR SET ";
+                                                consulta += "IMPORTE_AUTORIZADO = " + _ImporteTotal + ", ";
+                                                consulta += "ESTATUS_PROC = 'P', ";
+                                                consulta += "NIVEL = " + (Convert.ToInt32(NIVEL_DATAGRID) - 1) + ", ";
+                                                consulta += "USUARIO_AUTORIZO = '" + usuarioLogueado.Usuario + "', ";
+                                                consulta += "FECHA_HORA_AUTORIZO = @FechaAutorizo ";
+                                                consulta += "WHERE FOLIO = '" + FOLIO + "'";
+
+                                                cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                cmd.Parameters.Add("@FechaAutorizo", SqlDbType.DateTime).Value = DateTime.Now;
+                                                cmd.ExecuteNonQuery();
+                                                cmd.Dispose();
+
+                                                #endregion
+                                            }
+
+                                            #region ACTUALIZA DETALLE
+
+                                            foreach (List<string> _Pag_selec in _Seleccionados)
+                                            {
+                                                string aux = Convert.ToString(f.ObtenerMenorMontoAutorizado(FOLIO,
+                                                                                                            Convert.ToInt32(_Pag_selec[0]),
+                                                                                                            conexion,
+                                                                                                            transaction,
+                                                                                                            out msg_local));
+
+                                                if (DetallesAprobados.Count > 0)
+                                                {
+                                                    bool encontrado = false;
+                                                    for (int i = 0; i < DetallesAprobados.Count; i++)
+                                                    {
+                                                        if (DetallesAprobados[i] == Convert.ToInt32(_Pag_selec[0]))
+                                                        {
+                                                            encontrado = true;
+                                                            consulta = "UPDATE P_DOCTOS_PR_DET SET ";
+                                                            if (usuarioLogueado.U_ROL == "A")
+                                                            {
+                                                                consulta += "IMPORTE_AUTORIZADO = " + aux + ", ";
+                                                                consulta += "ESTATUS = 'A' ";
+                                                            }
+                                                            else
+                                                            {
+                                                                consulta += "IMPORTE_CAPTURISTA = " + aux + ", ";
+                                                                consulta += "ESTATUS = 'C' ";
+                                                            }
+                                                            consulta += " WHERE DOCTO_PR_DET_ID = '" + _Pag_selec[0] + "'";
+                                                            cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                            cmd.ExecuteNonQuery();
+                                                            cmd.Dispose();
+                                                            break;
+                                                        }
+                                                    }
+
+                                                    if (!encontrado)
+                                                    {
+                                                        consulta = "UPDATE P_DOCTOS_PR_DET SET ";
+                                                        if (usuarioLogueado.U_ROL == "A")
+                                                        {
+                                                            consulta += "IMPORTE_AUTORIZADO = " + aux + ", ";
+                                                            consulta += "ESTATUS = 'P' ";
+                                                        }
+                                                        else
+                                                        {
+                                                            consulta += "IMPORTE_CAPTURISTA = " + aux + ", ";
+                                                            consulta += "ESTATUS = 'C' ";
+                                                        }
+                                                        consulta += " WHERE DOCTO_PR_DET_ID = '" + _Pag_selec[0] + "'";
+                                                        cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                        cmd.ExecuteNonQuery();
+                                                        cmd.Dispose();
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    consulta = "UPDATE P_DOCTOS_PR_DET SET ";
+                                                    if (usuarioLogueado.U_ROL == "A")
+                                                    {
+                                                        consulta += "IMPORTE_AUTORIZADO = " + aux + ", ";
+                                                        consulta += "ESTATUS = 'P' ";
+                                                    }
+                                                    else
+                                                    {
+                                                        consulta += "IMPORTE_CAPTURISTA = " + aux + ", ";
+                                                        consulta += "ESTATUS = 'C' ";
+                                                    }
+                                                    consulta += " WHERE DOCTO_PR_DET_ID = '" + _Pag_selec[0] + "'";
+                                                    cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                                    cmd.ExecuteNonQuery();
+                                                    cmd.Dispose();
+                                                }
+                                            }
+
+                                            #endregion
+                                        }
+
+                                        transaction.Commit();
+                                        conexion.Desconectar();
+
+                                        MessageBox.Show("Pagos autorizados correctamente.", "Información", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                        Close();
+                                    }
+                                }
+                                catch (Exception Ex)
+                                {
+                                    transaction.Rollback();
+                                    msg_local = Ex.Message;
+                                }
+
+                                conexion.Desconectar();
+                            }
+                        }
+
+                        if (msg_local.Length > 0)
+                        {
+                            MessageBox.Show(msg_local, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                }
                 else
-                    MessageBox.Show("Ningún usuario ha sido seleccionado.", "Mensaje de pagos", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                {
+                    if (MessageBox.Show("¿Desea solicitar la peticion de los pagos seleccionados?", "Mensaje de pagos", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                    {
+                        C_REGISTROSWINDOWS registros = new C_REGISTROSWINDOWS();
+
+                        C_ConexionSQL conexion = new C_ConexionSQL();
+                        SqlTransaction transaction;
+                        SqlCommand cmd;
+
+                        string msg_local = "";
+                        string consulta = "";
+
+                        if (registros.LeerRegistros(false))
+                        {
+                            if (conexion.ConectarSQL())
+                            {
+                                transaction = conexion.SC.BeginTransaction();
+
+                                try
+                                {
+                                    if (_Ceros == true)
+                                    {
+                                        _resp = MessageBox.Show("Importe total autorizado \"" + _ImporteTotal.ToString("C2") + "\"\n\rEl monto autorizado de uno o mas " +
+                                           "pagos es cero\n\r¿Desea Continuar?", "Mensaje de pagos", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+                                    }
+
+                                    if (_Ceros == false || _resp == DialogResult.Yes)
+                                    {
+
+                                        #region ACTUALIZA ENCABEZADO
+                                        consulta = "UPDATE P_DOCTOS_PP SET ";
+
+                                        consulta += "       IMPORTE_AUTORIZADO = " + _ImporteTotal + ", ";
+                                        consulta += "       ESTATUS_PROC = 'T' ";
+
+                                        consulta += " WHERE FOLIO = '" + FOLIO + "' ";
+                                        cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                        cmd.ExecuteNonQuery();
+                                        cmd.Dispose();
+                                        #endregion
+
+                                        #region ACTUALIZA DETALLE
+                                        foreach (List<string> _Pag_selec in _Seleccionados)
+                                        {
+                                            string aux = Convert.ToString(_Pag_selec[6]).Replace(",", "");
+
+                                            consulta = "UPDATE P_DOCTOS_PP_DET SET ";
+
+                                            consulta += "       IMPORTE_AUTORIZADO = " + aux + ", ";
+                                            consulta += "       ESTATUS = 'A' ";
+
+                                            consulta += " WHERE DOCTO_PP_DET_ID = '" + _Pag_selec[0] + "'";
+                                            cmd = new SqlCommand(consulta, conexion.SC, transaction);
+                                            cmd.ExecuteNonQuery();
+                                            cmd.Dispose();
+                                            break;
+                                        }
+
+                                        #endregion
+
+                                        transaction.Commit();
+                                        conexion.Desconectar();
+
+                                        MessageBox.Show("Petición enviada correctamente.", "Información", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                                        Close();
+                                    }
+                                }
+                                catch (Exception Ex)
+                                {
+                                    transaction.Rollback();
+                                    msg_local = Ex.Message;
+                                }
+
+                                conexion.Desconectar();
+                            }
+                        }
+
+                        if (msg_local.Length > 0)
+                        {
+                            MessageBox.Show(msg_local, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                }
             }
             else
             {

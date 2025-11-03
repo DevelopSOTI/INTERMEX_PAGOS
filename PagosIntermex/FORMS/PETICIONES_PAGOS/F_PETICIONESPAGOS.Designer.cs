@@ -55,7 +55,6 @@
             this.txtInfo = new System.Windows.Forms.ToolStripLabel();
             this.txtPagos = new System.Windows.Forms.ToolStripLabel();
             this.dgvProgramas = new System.Windows.Forms.DataGridView();
-            this.panel2 = new System.Windows.Forms.Panel();
             this.dgvp_check = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.dgvp_folio = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.FOLIO_CARGO_MSP = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -76,6 +75,9 @@
             this.DOCTO_PP_DET_ID = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.DOCTO_PP_ID = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.DOCTO_PP_ID_2 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.panel2 = new System.Windows.Forms.Panel();
+            this.label4 = new System.Windows.Forms.Label();
+            this.dtpExcluir = new System.Windows.Forms.DateTimePicker();
             this.panel1.SuspendLayout();
             this.groupBox3.SuspendLayout();
             this.groupBox1.SuspendLayout();
@@ -105,7 +107,7 @@
             this.groupBox3.Controls.Add(this.label2);
             this.groupBox3.Controls.Add(this.btnFiltrar);
             this.groupBox3.ForeColor = System.Drawing.Color.White;
-            this.groupBox3.Location = new System.Drawing.Point(286, 12);
+            this.groupBox3.Location = new System.Drawing.Point(549, 12);
             this.groupBox3.Name = "groupBox3";
             this.groupBox3.Size = new System.Drawing.Size(297, 98);
             this.groupBox3.TabIndex = 13;
@@ -141,6 +143,8 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Controls.Add(this.dtpExcluir);
+            this.groupBox1.Controls.Add(this.label4);
             this.groupBox1.Controls.Add(this.button1);
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.dtpFecha);
@@ -150,7 +154,7 @@
             this.groupBox1.ForeColor = System.Drawing.Color.White;
             this.groupBox1.Location = new System.Drawing.Point(12, 12);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(268, 98);
+            this.groupBox1.Size = new System.Drawing.Size(531, 98);
             this.groupBox1.TabIndex = 11;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Fechas";
@@ -345,16 +349,6 @@
             this.dgvProgramas.Size = new System.Drawing.Size(1021, 303);
             this.dgvProgramas.TabIndex = 7;
             // 
-            // panel2
-            // 
-            this.panel2.Controls.Add(this.dgvProgramas);
-            this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.panel2.Location = new System.Drawing.Point(0, 116);
-            this.panel2.Name = "panel2";
-            this.panel2.Padding = new System.Windows.Forms.Padding(3);
-            this.panel2.Size = new System.Drawing.Size(1027, 309);
-            this.panel2.TabIndex = 16;
-            // 
             // dgvp_check
             // 
             this.dgvp_check.HeaderText = "";
@@ -493,6 +487,34 @@
             this.DOCTO_PP_ID_2.Name = "DOCTO_PP_ID_2";
             this.DOCTO_PP_ID_2.Visible = false;
             // 
+            // panel2
+            // 
+            this.panel2.Controls.Add(this.dgvProgramas);
+            this.panel2.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.panel2.Location = new System.Drawing.Point(0, 116);
+            this.panel2.Name = "panel2";
+            this.panel2.Padding = new System.Windows.Forms.Padding(3);
+            this.panel2.Size = new System.Drawing.Size(1027, 309);
+            this.panel2.TabIndex = 16;
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(274, 21);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(230, 13);
+            this.label4.TabIndex = 11;
+            this.label4.Text = "Excluir pagos vencidos anteriores a esta fecha:";
+            // 
+            // dtpExcluir
+            // 
+            this.dtpExcluir.Format = System.Windows.Forms.DateTimePickerFormat.Short;
+            this.dtpExcluir.Location = new System.Drawing.Point(277, 38);
+            this.dtpExcluir.Name = "dtpExcluir";
+            this.dtpExcluir.Size = new System.Drawing.Size(116, 20);
+            this.dtpExcluir.TabIndex = 12;
+            this.dtpExcluir.Value = new System.DateTime(2024, 1, 1, 0, 0, 0, 0);
+            // 
             // F_PETICIONESPAGOS
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -571,5 +593,7 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn DOCTO_PP_DET_ID;
         private System.Windows.Forms.DataGridViewTextBoxColumn DOCTO_PP_ID;
         private System.Windows.Forms.DataGridViewTextBoxColumn DOCTO_PP_ID_2;
+        private System.Windows.Forms.DateTimePicker dtpExcluir;
+        private System.Windows.Forms.Label label4;
     }
 }
