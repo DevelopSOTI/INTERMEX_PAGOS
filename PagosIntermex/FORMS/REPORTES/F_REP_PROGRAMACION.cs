@@ -427,8 +427,8 @@ namespace PagosIntermex.FORMS.REPORTES
                             for (int i = 0; i < dgvReporte.RowCount ; i++)
                             {
                                 // Verificar si la celda de Concepto tiene valor
-                                if (dgvReporte.Rows[i].Cells["Concepto"].Value != null &&
-                                    !string.IsNullOrWhiteSpace(dgvReporte.Rows[i].Cells["Concepto"].Value.ToString()))
+                                if (dgvReporte.Rows[i].Cells["Proyecto"].Value != null &&
+                                    !string.IsNullOrWhiteSpace(dgvReporte.Rows[i].Cells["Proyecto"].Value.ToString()))
                                 {
                                     string deptoCoId = dgvReporte.Rows[i].Cells["DEPTO_CO_ID"].Value?.ToString();
 
@@ -442,10 +442,10 @@ namespace PagosIntermex.FORMS.REPORTES
                                         if (resultado != null)
                                         {
                                             string clave = resultado.ToString().Trim();
-                                            string conceptoActual = dgvReporte.Rows[i].Cells["Concepto"].Value.ToString();
+                                            string conceptoActual = dgvReporte.Rows[i].Cells["Proyecto"].Value.ToString();
 
                                             // Actualizar el valor con el formato: CLAVE - CONCEPTO
-                                            dgvReporte.Rows[i].Cells["Concepto"].Value = $"{clave} - {conceptoActual}";
+                                            dgvReporte.Rows[i].Cells["Proyecto"].Value = $"{clave} - {conceptoActual}";
                                         }
                                     }
                                 }
@@ -499,7 +499,7 @@ namespace PagosIntermex.FORMS.REPORTES
                 new { Nombre = "Folio Programación", Ancho = 110, Frozen = true },
                 new { Nombre = "Empresa", Ancho = 150, Frozen = true },
                 new { Nombre = "Concepto", Ancho = 250, Frozen = true },
-                new { Nombre = "Proyecto", Ancho = 150, Frozen = true },
+                new { Nombre = "Proyecto", Ancho = 180, Frozen = true },
                 new { Nombre = "Tipo gasto", Ancho = 90, Frozen = true },
                 new { Nombre = "Categoria", Ancho = 90, Frozen = true },
                 new { Nombre = "Fecha Pago", Ancho = 85, Frozen = true },
