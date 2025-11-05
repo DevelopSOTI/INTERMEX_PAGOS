@@ -159,6 +159,7 @@ namespace PagosIntermex
 
                         cmd = new SqlCommand(QUERY, conexion_sql.SC);
                         reader = cmd.ExecuteReader();
+                        int[] nivelesUsuario = new int[1];
                         if (reader.HasRows)
                         {
                             while (reader.Read())
@@ -177,7 +178,7 @@ namespace PagosIntermex
                                     usuario.Privilegio = Convert.ToString(reader["Privilegio"]);
                                     usuario.Clave_Depto = Convert.ToString(reader["Clave_Depto"]);      
                                     usuario.U_ROL = Convert.ToString(reader["U_ROL"]);
-                                    int[] nivelesUsuario = usuario.NIVEL_USUARIO(Convert.ToInt32(Convert.ToString(reader["Usuario_id"])));
+                                    nivelesUsuario = usuario.NIVEL_USUARIO(Convert.ToInt32(Convert.ToString(reader["Usuario_id"])));
                                     if(nivelesUsuario.Length > 1)
                                     {
                                         usuario.NIVEL_SUPREMO = nivelesUsuario[0];
@@ -185,7 +186,10 @@ namespace PagosIntermex
                                     }
                                     else
                                     {
-                                        usuario.NIVEL = nivelesUsuario[0];
+                                        usuario.NIVEL = 0;
+                                        MessageBox.Show("Este usuario no tiene asignado un nivel de aprobación, asignelo primero","Mensaje de la aplicación",MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                        return;
+
                                     }
                                     SUCCESS = true;
                                 }
